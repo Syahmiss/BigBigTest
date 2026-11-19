@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Progres Kerja Ukur | Jurukur Mahabob</title>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<style>
+/* ============================================================
+   Status Site — UI ikut template Operations Hub (GEO-STAT: light, indigo + kuning).
+   Token warna SAMA dengan index.html hub. Tukar warna di :root sahaja.
+   ============================================================ */
+:root{
+  --ind-950:#0A2540; --ind-900:#0F2E55; --ind-800:#1E40AF; --ind-600:#1D4ED8; --ind-500:#3B82F6; --ind-100:#DBEAFE; --ind-50:#EFF6FF;
+  --yel:#FACC15; --yel-600:#EAB308; --yel-50:#FEFCE8; --yel-ink:#0A2540;
+  --bg:#F8FAFC; --surface:#FFFFFF; --line:#E2E8F0; --line2:#F1F5F9;
+  --ink:#1E293B; --ink2:#475569; --muted:#64748B;
+  --ok:#047857; --ok-50:#ECFDF5; --warn:#A16207; --warn-50:#FEF9C3; --bad:#DC2626; --bad-50:#FEE2E2;
+  --f:'Inter','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+  --r-lg:16px; --r-md:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--f);font-stretch:100%;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
+::selection{background:var(--ind-600);color:#fff}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.sm{font-size:11.5px}
+.num{font-variant-numeric:tabular-nums}
+.sp{flex:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.warn-t{color:var(--warn);font-weight:600}
+b.g{color:var(--ok)}
+/* saiz ikon lucide (class disalin ke <svg>) */
+svg.lucide{flex:none;stroke-width:1.9}
+.i12{width:12px;height:12px}.i14{width:14px;height:14px}.i16{width:16px;height:16px}.i18{width:18px;height:18px}.i24{width:24px;height:24px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:#cdd0e2;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#a3a6c2}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=date],input[type=time]{color-scheme:light}
+
+.wrap{flex:1;width:100%;max-width:1360px;margin:0 auto;padding:22px 26px 40px}
+
+/* ---------- Hero + KPI + tab ---------- */
+.hero{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
+.hero .contour{position:absolute;right:-40px;top:-60px;width:520px;height:300px;pointer-events:none;color:var(--ind-600);opacity:.13}
+.hero-head{position:relative;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:20px 24px 18px}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:650;color:var(--ind-600);margin-bottom:6px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--yel)}
+.hero-head h1{font-size:26px;font-weight:780;font-stretch:118%;letter-spacing:-.4px;line-height:1.1;color:var(--ind-950)}
+.hero-head p{font-size:12.5px;color:var(--muted);margin-top:6px;max-width:68ch}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:9px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--ind-600);color:var(--ind-600)}
+.btn.p{background:var(--ind-600);border-color:var(--ind-600);color:#fff}
+.btn.p:hover{background:var(--ind-800);border-color:var(--ind-800);color:#fff}
+.btn.y{background:var(--yel);border-color:var(--yel);color:var(--yel-ink)}
+.btn.y:hover{background:var(--yel-600);border-color:var(--yel-600);color:var(--yel-ink)}
+.btn:disabled{opacity:.65;cursor:progress}
+.ri{display:inline-flex}
+.animate-spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.kpis{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);background:linear-gradient(var(--surface),var(--bg))}
+.kpi{padding:15px 18px 16px;border-left:1px solid var(--line);min-width:0}
+.kpi:first-child{border-left:0}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font-size:27px;font-weight:720;font-stretch:112%;margin-top:4px;letter-spacing:-.6px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+.kpi .s{font-size:11.5px;color:var(--ink2);margin-top:6px}
+.kpi.hl .v{display:inline-block;max-width:100%;background:linear-gradient(transparent 66%,var(--yel) 66%,var(--yel) 92%,transparent 92%)}
+.tabs{display:flex;gap:2px;padding:0 14px;border-top:1px solid var(--line);overflow-x:auto;background:var(--surface)}
+.tab{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:11px 12px 10px;font-size:13px;font-weight:600;color:var(--ink2);border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--ind-600)}
+.tab.on{color:var(--ind-800);border-bottom-color:var(--yel)}
+.tab:focus-visible{outline:2px solid var(--ind-600);outline-offset:-2px}
+
+/* ---------- Panel ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;min-width:0;margin-bottom:16px}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ph h3,.ph h2{font-size:14.5px;font-weight:700;font-stretch:106%;display:flex;align-items:center;gap:9px}
+.ph h3::before,.ph h2::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--yel)}
+.ph .src{font-size:11.5px;color:var(--muted);padding:2px 8px;border-radius:6px;background:var(--bg)}
+.ph .src.ok{background:var(--ok-50);color:var(--ok)}.ph .src.info{background:var(--ind-50);color:var(--ind-600)}
+.ph-sub{flex-basis:100%;font-size:12px;color:var(--muted);margin-top:-6px;padding-left:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.inp{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:13px;transition:border-color .15s,box-shadow .15s}
+.inp:focus{outline:none;border-color:var(--ind-600);box-shadow:0 0 0 3px var(--ind-50)}
+.inp::placeholder{color:#a3a6c2}
+.search{position:relative;width:260px;display:block}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search .inp{padding-left:34px}
+select.inp{width:auto;min-width:160px;padding-right:30px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23757a94' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
+.form select.inp{width:100%}
+.empty{padding:28px 10px;text-align:center;color:var(--muted);font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.empty b{color:var(--ink2);font-weight:650}
+.empty.full{grid-column:1/-1}
+.spin{width:26px;height:26px;border:3px solid var(--ind-100);border-top-color:var(--ind-600);border-radius:50%;animation:spin .8s linear infinite}
+.spin.sm{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.35);border-top-color:#fff}
+
+/* ---------- Chip & tag ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:650;padding:2px 8px;border-radius:20px;white-space:nowrap;flex:none}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--ok-50);color:var(--ok)}.chip.warn{background:var(--warn-50);color:var(--warn)}.chip.bad{background:var(--bad-50);color:var(--bad)}.chip.info{background:var(--ind-50);color:var(--ind-600)}.chip.mute{background:var(--line2);color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11px;font-weight:650;padding:2px 8px;border-radius:6px;background:var(--ind-50);color:var(--ind-600)}
+.tag.mute{background:var(--line2);color:var(--ink2)}
+.qty{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.qty b{color:var(--ind-600);font-weight:650}
+.person{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:550;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--ink2);background:var(--surface)}
+.person svg{color:var(--ind-600)}
+.people{display:flex;flex-wrap:wrap;gap:5px}
+
+/* ---------- Kad progres fail ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;align-items:start}
+.fc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:13px;transition:border-color .15s,box-shadow .15s;min-width:0}
+.fc:hover{border-color:var(--ind-100);box-shadow:0 12px 26px -20px rgba(23,21,74,.5)}
+.fc.late{box-shadow:inset 0 3px 0 var(--bad)}
+.fc-h{display:flex;align-items:flex-start;gap:11px}
+.fc-ic{width:38px;height:38px;border-radius:10px;background:var(--yel);color:var(--ind-950);display:grid;place-items:center;flex:none}
+.fc-t{min-width:0;flex:1}
+.fc-t h3{font-size:16px;font-weight:720;font-stretch:110%;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.fc-t span{font-size:11.5px;color:var(--muted)}
+.big{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.big b{font-size:26px;font-weight:720;font-stretch:112%;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1}
+.big span{font-size:11.5px;color:var(--muted)}
+.bar{height:8px;background:var(--line2);border-radius:5px;overflow:hidden}
+.bar.lg{height:10px}.bar.sm{height:6px}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--ind-600);transition:width .6s ease}
+.lbl{font-size:11.5px;font-weight:650;color:var(--muted);margin-bottom:6px}
+.box{background:var(--bg);border-radius:var(--r-md);padding:10px 12px;display:grid;gap:8px}
+.task{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);min-width:0}
+.task span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task svg{color:var(--ind-600)}
+details.kl summary{list-style:none;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:650;color:var(--ind-600)}
+details.kl summary::-webkit-details-marker{display:none}
+details.kl summary .chev{transition:transform .15s}
+details.kl[open] summary .chev{transform:rotate(90deg)}
+details.kl ul{list-style:none;margin-top:4px}
+details.kl li{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+details.kl li:first-child{border-top:0}
+details.kl .t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.kl .m{font-size:11.5px;color:var(--muted)}
+.min{min-width:0}
+.mini{flex:none;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface);font-size:11.5px;font-weight:650;color:var(--ind-600);transition:background .15s,border-color .15s}
+button.mini:hover{background:var(--ind-50);border-color:var(--ind-100)}
+.mini.dashed{border-style:dashed;color:var(--muted);font-weight:500;cursor:help}
+.kws{display:grid;gap:8px}
+.kw{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.kw.nokey{border-style:dashed;border-color:#efc77a;background:var(--warn-50)}
+.kw .row{margin-bottom:7px}
+.kw-n{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:650;min-width:0}
+.kw-n span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kw-n svg{color:var(--ind-600)}.kw.nokey .kw-n svg{color:var(--warn)}
+.kw .pct{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.kw .meta{font-size:11.5px;color:var(--muted);margin-top:6px}
+.kw .meta b{color:var(--ink2);font-weight:650}
+.cats{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);display:grid;gap:7px}
+.cr .row{font-size:12px;margin-bottom:4px}
+.cr-n{display:flex;align-items:center;gap:6px;color:var(--ink2);font-weight:550;min-width:0}
+.cr-n::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--ind-500);flex:none}
+.cr-v{display:flex;align-items:center;gap:8px;flex:none;font-size:11px;color:var(--muted)}
+.cr-v b{font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums}
+.fc-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--muted)}
+.fc-f span{display:inline-flex;align-items:center;gap:5px}
+.fc-f b{color:var(--ink2);font-weight:650;font-variant-numeric:tabular-nums}
+.fc-f em{font-style:normal;font-weight:650}
+.fc-f em.bad{color:var(--bad)}.fc-f em.warn{color:var(--warn)}
+@keyframes pulseAccent{0%,100%{border-color:var(--ind-600);box-shadow:0 0 0 3px var(--ind-50)}50%{border-color:var(--yel);box-shadow:0 0 0 3px var(--yel-50)}}
+.new-card-highlight{animation:pulseAccent 2.5s infinite}
+
+/* ---------- Borang ---------- */
+.form-panel{max-width:860px;margin:0 auto 16px}
+.form{display:grid;gap:18px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.flab{display:block;font-size:12px;font-weight:650;color:var(--ink2);margin-bottom:6px}
+.hint{font-size:11.5px;color:var(--muted);margin-top:5px}
+.ms-wrap{position:relative}
+.ms{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
+.ms:hover{border-color:var(--ind-100)}
+.ms-v{color:#a3a6c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-v.on{color:var(--ind-600);font-weight:600}
+.menu{position:absolute;z-index:30;left:0;right:0;margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:0 16px 36px -16px rgba(23,21,74,.35);padding:6px;max-height:240px;overflow:auto}
+.opt{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:550;cursor:pointer}
+.opt:hover{background:var(--ind-50)}
+.opt input{width:15px;height:15px;accent-color:var(--ind-600)}
+.banner{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--r-md);background:var(--yel-50);border:1px solid #f1dc84;color:var(--yel-ink);font-size:12.5px;margin-bottom:16px}
+.form-foot{display:flex;justify-content:flex-end;gap:8px;padding-top:16px;border-top:1px solid var(--line2)}
+/* Mod edit: Bilangan kawasan disorok, No File ambil lebar penuh */
+.form.is-edit #bilKawasanWrap{display:none}
+.form.is-edit #idFileWrap{grid-column:1/-1}
+.form.is-edit .add-only{display:none}
+.edit-only{display:none}
+.form.is-edit .edit-only{display:inline}
+/* Senarai tugasan dalam borang (bullet) */
+.tg-add{display:flex;gap:8px}
+.tg-add .inp{flex:1}
+.tg-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.tg-list:empty{display:none}
+.tg-list li{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:13px}
+.tg-list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--yel);box-shadow:0 0 0 2px var(--ind-950);flex:none}
+.tg-list li span{flex:1;min-width:0;overflow-wrap:anywhere}
+.tg-list li button{border:0;background:none;color:var(--muted);cursor:pointer;padding:2px;border-radius:6px;display:grid;place-items:center}
+.tg-list li button:hover{color:var(--bad);background:var(--line2)}
+/* Checklist tugasan dalam kad progres */
+.ck-grp + .ck-grp{margin-top:12px}
+.ck-h{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ck-h b{margin-left:auto;font-weight:600;text-transform:none;letter-spacing:0}
+.ck{display:flex;gap:10px;align-items:flex-start}
+.ck > input{appearance:none;-webkit-appearance:none;flex:none;width:18px;height:18px;margin:1px 0 0;border:1.5px solid var(--line);border-radius:5px;background:#fff;cursor:pointer;display:grid;place-items:center;transition:background .15s,border-color .15s}
+.ck > input:checked{background:var(--ok);border-color:var(--ok)}
+.ck > input:checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.ck > input:disabled{cursor:not-allowed;opacity:.5}
+.ck > input:disabled:checked{opacity:1;cursor:default}
+.ck > input:focus-visible{outline:2px solid var(--ind-600);outline-offset:2px}
+.ck-b{flex:1;min-width:0}
+.ck.done .cr-n > span{text-decoration:line-through;text-decoration-color:var(--muted);color:var(--muted)}
+.ck-when{font-size:11px;color:var(--ok);margin-top:2px}
+/* Blok kawasan dinamik: Kawasan di atas, Kuantiti + Unit di bawah */
+.kr-list{display:grid;gap:10px}
+.kr{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:grid;gap:10px}
+.kr-h{display:flex;align-items:center;gap:8px}
+.kr-no{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--ind-950)}
+.kr-no i{width:22px;height:22px;border-radius:7px;background:var(--ind-950);color:var(--yel);display:grid;place-items:center;font-style:normal;font-size:11px}
+.kr .flab{margin-bottom:4px}
+.kr.skip{background:var(--line2);border-style:dashed}
+.kr.skip .kr-f{display:none}
+.kr.skip .kr-no{color:var(--muted)}
+.kr-empty{padding:14px;border:1px dashed var(--line);border-radius:12px;text-align:center;font-size:12.5px;color:var(--muted)}
+.form-foot .btn{padding:10px 16px;font-size:13px}
+
+/* ---------- Jadual ---------- */
+.tw{overflow-x:auto;margin:0 -6px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+th{font-size:11.5px;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface);position:sticky;top:0}
+td{padding:9px 10px;border-bottom:1px solid var(--line2);color:var(--ink2);vertical-align:top}
+tbody tr:hover td{background:#fafaff}
+tr:last-child td{border-bottom:0}
+
+/* ---------- Toast & footer ---------- */
+.toast{position:fixed;top:18px;right:18px;z-index:60;display:flex;align-items:flex-start;gap:10px;max-width:380px;background:var(--ind-950);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;border-left:4px solid var(--yel);box-shadow:0 12px 30px -10px rgba(23,21,74,.45);opacity:0;transform:translateY(-6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.toast.ok{border-left-color:#3fcf8e}.toast.bad{border-left-color:#ff7a7a}
+.toast #toastIcon{display:inline-flex;margin-top:1px}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;padding:0 16px 22px}
+
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi:nth-child(3){border-left:0}.kpi:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:640px){
+  .wrap{padding:16px 16px 28px}
+  .hero-head{padding:16px 16px 14px}.hero-head h1{font-size:22px}
+  .hero .contour{width:360px;right:-140px}
+  .kpi .v{font-size:22px}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  .fgrid{grid-template-columns:minmax(0,1fr)}
+  .search{width:100%}.tools{width:100%}select.inp{flex:1}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============================================================
+   JM THEME LAYER — ikut template "Dashboard Jualan & Invois"
+   Navy #0A2540 · Royal #1D4ED8 · Gold #FACC15 · Inter · slate
+   Token di :root dah dipetakan; blok ni ubah rupa komponen.
+   ============================================================ */
+body{font-family:var(--f);background:var(--bg);color:var(--ink)}
+::selection{background:var(--yel);color:var(--ind-950)}
+:focus-visible{outline:2px solid var(--ind-600);outline-offset:2px}
+
+/* Panel / kad = bg-white rounded-2xl border-slate-200 shadow-sm */
+.panel,.fc,.pg,.item,.hero-head{box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.panel{border-radius:16px}
+.ph h3,.ph h2,.panel h2{color:var(--ind-950);font-weight:700;font-stretch:100%}
+.ph .src,.panel h2 small{background:var(--line2);color:var(--muted);font-weight:500;border-radius:8px}
+
+/* Butang */
+.btn{border-radius:12px;border-color:#CBD5E1;font-weight:600;transition:background .15s,border-color .15s,color .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn:hover{border-color:var(--ind-600);color:var(--ind-950);background:var(--ind-50)}
+.btn.p,.btn.primary{background:var(--ind-950);border-color:var(--ind-950);color:#fff}
+.btn.p:hover,.btn.primary:hover{background:var(--ind-800);border-color:var(--ind-800);color:#fff}
+.btn.y,.btn.back{background:var(--yel);border-color:var(--yel);color:var(--ind-950)}
+.btn.y:hover,.btn.back:hover{background:var(--yel-600);border-color:var(--yel-600);color:var(--ind-950)}
+
+/* Input = rounded-xl border-slate-300 focus:ring-2 ring-royal */
+.inp,.filters input,.filters select,.edit select,.edit input,.rn-form input{border-color:#CBD5E1;border-radius:12px}
+.inp:focus,.filters input:focus,.filters select:focus,.edit select:focus,.edit input:focus,.rn-form input:focus{outline:none;border-color:var(--ind-600);box-shadow:0 0 0 2px var(--ind-600)}
+.inp::placeholder,.filters input::placeholder{color:#94A3B8}
+
+/* Chip / pill = rounded-full */
+.chip,.pill{font-weight:600;padding:3px 10px}
+
+/* Jadual = thead navy, teks putih uppercase, hover biru lembut */
+table:not(.sheet) th{background:var(--ind-950);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:12px 14px;border-bottom:0}
+table:not(.sheet) thead tr th:first-child{border-top-left-radius:12px}
+table:not(.sheet) thead tr th:last-child{border-top-right-radius:12px}
+table:not(.sheet) td{padding:12px 14px;border-bottom:1px solid var(--line)}
+tbody tr:hover td{background:rgba(239,246,255,.6)}
+.sheet th{background:var(--ind-950);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+
+/* Hero → sub-header putih + kad KPI berasingan (gaya template) */
+.hero{background:none;border:0;border-radius:0;overflow:visible;display:flex;flex-direction:column;gap:20px}
+.hero .contour{display:none}
+.hero-head{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 20px;align-items:center}
+.hero-head h1,.hero-head h2{color:var(--ind-950);font-weight:800;font-stretch:100%;letter-spacing:-.3px;font-size:22px;display:flex;align-items:center;gap:12px}
+.hero-head h1::before,.hero-head h2::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--ind-800);box-shadow:0 0 0 4px var(--ind-100);flex:none}
+.eyebrow{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:600}
+.eyebrow::before{display:none}
+
+.hero .kpis{display:grid;gap:20px;border-top:0;background:none}
+.hero .kpi{background:var(--surface);border:1px solid var(--line)!important;border-top:4px solid var(--ind-600)!important;border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(15,23,42,.06);transition:box-shadow .15s,transform .15s;overflow:hidden}
+.hero .kpi:hover{background:var(--surface);box-shadow:0 6px 16px -6px rgba(15,23,42,.18)}
+.hero .kpi .l{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.hero .kpi .v{font-size:28px;font-weight:800;font-stretch:100%;color:var(--ind-950);letter-spacing:-.5px;margin-top:8px}
+.hero .kpi .s{color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--line2)}
+.hero .kpi.hl .v{background:none}
+.hero .kpi:nth-child(2){border-top-color:var(--ind-600)!important}
+.hero .kpi:nth-child(3){border-top-color:var(--yel)!important}
+.hero .kpi:nth-child(4){border-top-color:#334155!important}
+.hero .kpi:nth-child(5){border-top-color:var(--bad)!important}
+.hero .kpi:nth-child(6){border-top-color:var(--ok)!important}
+/* KPI pertama = kad navy → blue gradient dengan bulatan gold */
+.hero .kpi:first-child{position:relative;background:linear-gradient(135deg,var(--ind-950),var(--ind-800));border:1px solid #1E3A8A!important;color:#fff}
+.hero .kpi:first-child::after{content:"";position:absolute;right:-16px;top:-16px;width:96px;height:96px;border-radius:50%;background:rgba(250,204,21,.12);transition:transform .2s;pointer-events:none}
+.hero .kpi:first-child:hover{background:linear-gradient(135deg,var(--ind-950),var(--ind-800))}
+.hero .kpi:first-child:hover::after{transform:scale(1.1)}
+.hero .kpi:first-child .l{color:#BFDBFE}
+.hero .kpi:first-child .v{color:#fff}
+.hero .kpi:first-child .s{color:#DBEAFE;border-top-color:rgba(255,255,255,.15)}
+.hero .kpi:first-child .s b,.hero .kpi:first-child .s .chip{color:var(--yel)}
+.hero .kpi.sel{box-shadow:0 0 0 3px var(--ind-100)!important;background:var(--ind-50)}
+.hero .kpi:first-child.sel{box-shadow:0 0 0 3px var(--yel)!important;background:linear-gradient(135deg,var(--ind-950),var(--ind-800))}
+
+/* Toolbar tab = bar navy rounded-2xl, tab aktif gold */
+.jm-bar{background:var(--ind-950);border:0;border-radius:16px;padding:8px 12px;box-shadow:0 4px 10px -4px rgba(10,37,64,.4)}
+.jm-tab{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;color:#DBEAFE;white-space:nowrap;transition:background .15s,color .15s}
+.jm-tab:hover{background:rgba(255,255,255,.1);color:#fff}
+.jm-tab.on{background:var(--yel);color:var(--ind-950);font-weight:700;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+.jm-tab.on svg{color:var(--ind-950)}
+
+/* Toast = navy + garis gold */
+.toast{background:var(--ind-950);border-left:4px solid var(--yel);border-radius:12px}
+
+@media (max-width:640px){.hero .kpis{gap:12px}.hero .kpi .v{font-size:22px}}
+
+/* --- Progres Kerja: tab dalam hero dialih ke atas jadi toolbar navy --- */
+.hero .tabs{order:-1;background:var(--ind-950);border:0;border-radius:16px;padding:8px 12px;gap:6px;box-shadow:0 4px 10px -4px rgba(10,37,64,.4)}
+.tab{border-bottom:0!important;padding:10px 16px;border-radius:12px;color:#DBEAFE;transition:background .15s,color .15s}
+.tab:hover{background:rgba(255,255,255,.1);color:#fff}
+.tab.on{background:var(--yel);color:var(--ind-950);font-weight:700;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+.tab:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
+.hero .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fc{border-radius:16px}
+.fc:hover{border-color:var(--ind-100);box-shadow:0 10px 24px -14px rgba(10,37,64,.35)}
+.fc-ic{background:var(--ind-950);color:var(--yel);border-radius:12px}
+.fc-t h3{color:var(--ind-950);font-stretch:100%;font-weight:700}
+.big b{color:var(--ind-950);font-weight:800;font-stretch:100%}
+.box{background:var(--line2)}
+.banner{background:var(--yel-50);border-color:#FDE68A;color:var(--ind-950)}
+.menu{border-radius:12px}
+.tw{border:1px solid var(--line);border-radius:12px;margin:0}
+.tw th{position:sticky;top:0;z-index:1}
+@media (max-width:900px){.hero .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ============================================================
+   JM MOBILE — skrin ≤ 640px: tiada scroll ke tepi.
+   Jadual bertukar jadi kad; label lajur diisi oleh skrip jmCards().
+   ============================================================ */
+html,body{max-width:100%;overflow-x:hidden}
+@media (max-width:640px){
+  .tbl,.tw,.table-responsive,.tbl-wrap{overflow:visible!important;border:0!important;background:none!important;margin:0!important;border-radius:0!important;max-height:none!important}
+  table.jm-cards{min-width:0!important;width:100%!important;border:0!important;background:none!important;border-collapse:separate!important}
+  table.jm-cards thead{display:none!important}
+  table.jm-cards,table.jm-cards tbody,table.jm-cards tfoot,table.jm-cards tr,table.jm-cards td{display:block!important;width:100%!important;max-width:none!important}
+  table.jm-cards tr{position:relative;background:#fff;border:1px solid #E2E8F0;border-radius:12px;margin:0 0 10px;padding:4px 14px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+  table.jm-cards tbody tr:hover td,table.jm-cards tbody tr:hover{background:#fff!important}
+  table.jm-cards td{position:relative;padding:9px 0 9px 40%!important;min-height:36px;border:0!important;border-bottom:1px solid #F1F5F9!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere;background:none!important;box-shadow:none!important}
+  table.jm-cards td:last-child{border-bottom:0!important}
+  table.jm-cards td::before{content:attr(data-label);position:absolute;left:0;top:9px;width:36%;font-size:10.5px;font-weight:600;line-height:1.35;text-transform:uppercase;letter-spacing:.05em;color:#64748B;white-space:normal}
+  /* sel pertama = tajuk kad: label di atas, nilai penuh lebar */
+  table.jm-cards td:first-child:not(.jm-full){padding:10px 0!important;font-size:14px}
+  table.jm-cards td:first-child:not(.jm-full)::before{position:static;display:block;width:auto;margin-bottom:3px}
+  /* sel tanpa label (cth. butang padam) */
+  table.jm-cards td.jm-nolabel{padding-left:0!important;text-align:right!important}
+  table.jm-cards td.jm-nolabel::before{display:none}
+  /* baris colspan (kategori, kosong, memuatkan) */
+  table.jm-cards td.jm-full{padding:12px 0!important;text-align:center!important;border-bottom:0!important}
+  table.jm-cards td.jm-full::before{display:none}
+  table.jm-cards tr:has(> td.jm-full:only-child){padding:0 14px}
+  table.jm-cards td.category-banner,table.jm-cards .category-banner td{text-align:left!important;padding:10px 14px!important;border-radius:10px;margin:0 -14px;width:calc(100% + 28px)!important}
+  table.jm-cards td.category-banner{background:#0A2540!important;color:#fff!important;box-shadow:inset 4px 0 0 #FACC15!important}
+  table.jm-cards tr:has(> td.category-banner){background:none;border:0;box-shadow:none;padding:0}
+  /* kandungan dalam sel */
+  table.jm-cards td .prog,table.jm-cards td .mini{min-width:0;max-width:100%}
+  table.jm-cards td input,table.jm-cards td select,table.jm-cards td textarea{width:100%;max-width:100%}
+  table.jm-cards td .tick-group{flex-wrap:wrap}
+  table.jm-cards td .clip{max-width:100%;white-space:normal}
+  img,video,canvas,svg{max-width:100%}
+}
+
+@media (max-width:640px){
+  /* toolbar tab: 3 tab sebaris, teks boleh balut, ikon disorok */
+  .hero .tabs,.tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:6px!important;overflow:visible!important}
+  .hero .tabs .tab,.tabs button{justify-content:center;text-align:center;white-space:normal;line-height:1.25;padding:9px 6px!important;font-size:12px}
+  .hero .tabs .tab svg,.tabs button svg{display:none}
+  .tabbar{flex-direction:column;align-items:stretch;gap:8px}
+  .tabbar .sp{display:none}
+  .tabbar>.btn{justify-content:center}
+  .hero-head{padding:14px 16px}
+  .hero-head h1,.hero-head h2{font-size:19px}
+  .hero-head .actions,.hero-head .hero-act{width:100%}
+  .hero-head .actions .btn,.hero-head .hero-act .btn{flex:1;justify-content:center}
+  .hero-head>.btn{width:100%;justify-content:center}
+  .hero-head .chips{width:100%}
+  .ph .tools,.ph .search{width:100%}
+  .form-panel .form{grid-template-columns:minmax(0,1fr)}
+  .inp{min-width:0}
+  .ph select.inp,.ph .inp.sm{flex:1 1 160px;min-width:0;max-width:100%!important}
+  .tabbar .btn span,.hero-act .btn span{display:inline!important}
+}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+
+  <!-- HERO + KPI + TAB (kekal untuk semua tab) -->
+  <section class="hero">
+    <svg class="contour" viewBox="0 0 520 300" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M400.6 150.0 L402.1 152.5 L402.5 155.2 L402.0 157.8 L400.6 160.2 L398.5 162.4 L396.0 164.4 L393.3 166.1 L390.6 167.7 L387.8 169.2 L385.0 170.6 L382.2 171.9 L379.2 173.0 L376.1 173.8 L372.8 174.2 L369.4 174.3 L366.1 173.9 L362.9 173.2 L360.0 172.4 L357.3 171.6 L354.7 170.9 L352.0 170.5 L349.2 170.5 L345.9 170.8 L342.2 171.2 L338.1 171.6 L333.7 171.6 L329.3 171.2 L325.2 170.1 L321.9 168.4 L319.6 166.1 L318.4 163.4 L318.4 160.4 L319.4 157.5 L321.1 154.7 L323.2 152.2 L325.2 150.0 L327.0 148.0 L328.3 146.1 L329.2 144.3 L329.8 142.4 L330.2 140.4 L330.7 138.4 L331.6 136.3 L332.8 134.3 L334.5 132.4 L336.6 130.8 L339.0 129.3 L341.5 127.9 L344.2 126.7 L347.0 125.4 L349.9 124.1 L353.0 122.7 L356.4 121.4 L360.0 120.4 L363.8 119.8 L367.8 119.7 L371.5 120.3 L375.0 121.7 L377.8 123.7 L379.9 126.2 L381.3 129.0 L382.1 131.8 L382.6 134.4 L383.0 136.7 L383.7 138.6 L384.9 140.1 L386.8 141.4 L389.3 142.6 L392.3 144.0 L395.4 145.7 L398.3 147.7 L400.6 150.0Z"/><path d="M444.4 150.0 L445.8 155.2 L445.0 160.3 L442.2 165.2 L437.9 169.6 L432.6 173.4 L426.9 176.6 L421.2 179.5 L415.6 182.2 L410.4 184.7 L405.2 187.2 L400.1 189.5 L394.7 191.5 L389.1 193.1 L383.3 194.1 L377.3 194.5 L371.3 194.3 L365.5 193.7 L360.0 193.1 L354.6 192.5 L349.2 192.4 L343.4 192.7 L337.0 193.5 L329.9 194.5 L322.1 195.3 L313.8 195.5 L305.5 194.8 L297.8 192.9 L291.4 189.7 L286.8 185.4 L284.4 180.1 L284.2 174.4 L285.9 168.6 L289.0 163.1 L292.7 158.2 L296.4 153.8 L299.4 150.0 L301.3 146.5 L302.2 143.0 L302.2 139.3 L301.7 135.4 L301.2 131.1 L301.4 126.6 L302.4 122.2 L304.6 117.9 L307.8 114.0 L312.0 110.6 L316.9 107.6 L322.2 104.9 L327.9 102.5 L333.7 100.1 L339.8 97.9 L346.1 95.8 L352.9 94.1 L360.0 93.1 L367.2 92.9 L374.3 93.9 L380.9 96.1 L386.6 99.5 L391.2 103.8 L394.6 108.7 L397.0 113.6 L398.7 118.2 L400.3 122.2 L402.4 125.4 L405.6 128.0 L409.9 130.1 L415.6 132.1 L422.1 134.4 L429.0 137.2 L435.5 140.8 L440.8 145.1 L444.4 150.0Z"/><path d="M490.7 150.0 L489.8 157.8 L485.6 165.3 L478.9 172.0 L470.5 177.7 L461.4 182.6 L452.4 186.8 L444.0 190.6 L436.4 194.2 L429.4 197.9 L422.8 201.7 L416.2 205.4 L409.2 208.8 L401.7 211.7 L393.7 213.9 L385.4 215.4 L376.9 216.1 L368.4 216.5 L360.0 216.7 L351.5 217.2 L342.6 218.1 L333.1 219.3 L322.7 220.7 L311.4 221.9 L299.5 222.2 L287.6 221.3 L276.5 218.6 L267.1 214.0 L260.2 207.8 L256.3 200.1 L255.4 191.6 L257.4 183.0 L261.3 174.8 L266.1 167.4 L270.8 160.8 L274.3 155.2 L276.1 150.0 L276.0 144.9 L274.3 139.6 L271.6 133.7 L268.8 127.1 L266.9 120.1 L266.5 112.8 L268.2 105.7 L272.0 99.1 L277.7 93.2 L284.9 88.3 L293.1 84.1 L301.9 80.6 L311.0 77.6 L320.3 74.8 L329.8 72.4 L339.6 70.4 L349.7 69.0 L360.0 68.7 L370.2 69.7 L379.9 72.3 L388.6 76.4 L396.1 81.7 L402.1 87.7 L406.8 94.1 L410.7 100.0 L414.5 105.2 L418.9 109.4 L424.6 112.6 L432.1 115.2 L441.3 117.6 L451.9 120.5 L462.9 124.2 L473.4 129.0 L482.1 135.1 L488.1 142.3 L490.7 150.0Z"/><path d="M534.0 150.0 L528.4 160.2 L519.2 169.4 L507.6 177.3 L495.0 183.9 L482.8 189.5 L471.7 194.5 L462.2 199.4 L454.1 204.5 L447.0 210.0 L440.2 215.9 L433.0 221.9 L424.9 227.5 L415.8 232.5 L405.7 236.6 L394.8 239.6 L383.5 241.7 L371.8 243.3 L360.0 244.6 L347.8 246.0 L335.1 247.6 L321.5 249.1 L307.1 250.3 L292.1 250.5 L277.0 249.1 L262.8 245.7 L250.6 239.9 L241.1 232.0 L235.3 222.2 L233.2 211.2 L234.5 200.0 L238.3 189.1 L243.3 179.3 L248.0 170.7 L251.1 163.2 L251.8 156.5 L249.8 150.0 L245.3 143.1 L239.3 135.3 L233.0 126.5 L228.0 116.9 L225.2 106.7 L225.6 96.5 L229.4 86.9 L236.4 78.5 L246.0 71.4 L257.5 65.7 L270.0 61.3 L282.8 57.8 L295.7 54.9 L308.5 52.4 L321.3 50.3 L334.1 48.7 L347.1 48.0 L360.0 48.6 L372.6 50.8 L384.4 54.5 L395.0 59.8 L404.3 66.1 L412.2 72.8 L419.1 79.4 L425.9 85.1 L433.2 89.8 L442.1 93.4 L453.0 96.2 L466.0 98.8 L480.6 102.0 L495.9 106.3 L510.3 112.3 L522.5 120.0 L531.0 129.2 L534.9 139.4 L534.0 150.0Z"/><path d="M568.3 150.0 L556.8 161.9 L542.3 172.2 L526.7 180.8 L511.6 188.0 L498.3 194.5 L487.5 200.8 L479.2 207.5 L472.6 215.1 L466.8 223.6 L460.6 232.7 L453.2 241.8 L444.0 250.4 L432.9 257.8 L420.1 263.9 L406.0 268.4 L391.1 271.6 L375.7 273.9 L360.0 275.7 L343.9 277.1 L327.2 278.4 L309.9 279.1 L292.0 278.8 L274.3 276.8 L257.3 272.7 L242.3 266.0 L230.2 256.7 L221.9 245.2 L217.7 232.3 L217.3 218.9 L219.8 205.8 L223.6 193.9 L227.2 183.3 L228.8 174.2 L227.4 166.1 L222.5 158.3 L214.5 150.0 L204.4 140.6 L193.9 129.8 L184.9 117.6 L179.1 104.6 L177.6 91.4 L181.1 78.8 L189.3 67.6 L201.5 58.3 L216.6 51.1 L233.2 45.8 L250.3 41.9 L267.1 39.1 L283.4 36.7 L299.1 34.6 L314.4 32.7 L329.7 31.3 L344.9 30.8 L360.0 31.7 L374.7 34.1 L388.6 38.1 L401.4 43.4 L413.1 49.5 L423.8 55.7 L434.2 61.3 L445.2 66.1 L457.6 69.8 L472.1 72.7 L488.7 75.5 L507.1 78.9 L526.2 83.8 L544.3 90.7 L559.6 99.9 L570.6 111.1 L575.8 123.8 L575.0 137.0 L568.3 150.0Z"/><path d="M590.3 150.0 L573.7 162.9 L555.6 173.8 L538.5 183.0 L523.8 191.1 L512.7 199.1 L505.1 207.8 L500.1 217.7 L496.5 229.0 L492.7 241.5 L487.2 254.6 L479.0 267.2 L467.7 278.7 L453.4 288.2 L436.8 295.5 L418.5 300.6 L399.3 303.8 L379.7 305.6 L360.0 306.6 L340.1 306.9 L319.9 306.7 L299.6 305.5 L279.4 302.8 L259.9 298.0 L242.2 290.7 L227.2 280.8 L215.9 268.4 L208.7 254.4 L205.4 239.5 L205.1 224.8 L206.4 211.1 L207.5 199.1 L206.5 188.5 L202.0 179.2 L193.6 170.2 L181.5 160.8 L166.9 150.0 L151.9 137.4 L138.7 123.1 L129.5 107.4 L126.0 91.3 L129.0 75.7 L138.4 61.8 L153.3 50.2 L172.2 41.3 L193.3 35.1 L215.1 30.9 L236.2 28.0 L256.0 25.8 L274.5 23.6 L292.0 21.1 L308.9 18.5 L325.8 16.2 L342.8 14.7 L360.0 14.6 L377.0 16.0 L393.5 19.1 L409.2 23.4 L424.2 28.4 L438.9 33.4 L453.9 37.8 L470.1 41.6 L488.1 44.7 L508.1 47.9 L529.7 51.8 L552.0 57.3 L573.1 65.1 L591.2 75.6 L604.3 88.7 L611.0 103.6 L610.6 119.5 L603.2 135.3 L590.3 150.0Z"/><path d="M601.1 150.0 L582.0 163.4 L563.9 174.8 L549.1 184.9 L538.6 194.8 L532.8 205.6 L530.6 217.9 L530.3 232.3 L529.9 248.3 L527.4 265.4 L521.1 282.4 L510.4 298.1 L495.1 311.4 L476.0 321.6 L454.3 328.6 L431.0 332.6 L407.1 334.3 L383.4 334.3 L360.0 333.3 L337.0 331.6 L314.2 329.2 L291.7 325.7 L270.0 320.6 L249.6 313.3 L231.5 303.5 L216.6 291.2 L205.5 277.0 L198.0 261.7 L193.6 246.3 L191.0 231.6 L188.2 218.4 L183.4 206.8 L175.2 196.4 L162.8 186.4 L146.5 176.0 L127.5 164.0 L108.1 150.0 L90.9 133.8 L78.4 115.8 L72.9 96.9 L75.4 78.6 L86.0 61.9 L103.6 47.9 L126.5 37.2 L152.3 29.8 L178.8 25.0 L204.2 22.0 L227.6 19.6 L248.6 16.9 L267.7 13.5 L285.6 9.1 L303.4 4.2 L321.5 -0.6 L340.4 -4.4 L360.0 -6.7 L379.9 -7.1 L399.8 -5.7 L419.3 -2.7 L438.6 1.1 L458.0 5.1 L478.0 9.0 L499.4 12.7 L522.3 16.6 L546.6 21.3 L571.3 27.7 L594.8 36.6 L615.1 48.4 L630.2 63.1 L638.5 80.1 L639.0 98.4 L632.0 116.9 L618.7 134.4 L601.1 150.0Z"/><path d="M330 150h60M360 128v44" stroke-width="1.6"/></svg>
+    <div class="hero-head">
+      <div>
+        <div class="eyebrow">HOD Site · Google Sheets &amp; Apps Script</div>
+        <h1>Progres kerja ukur mengikut fail</h1>
+        <p>Target diambil daripada rekod kerja (Tugas + Kuantiti). Peratus siap dikira daripada "Progress Hari Ini" dalam laporan harian, dipadankan ikut No File dan Tugas.</p>
+      </div>
+      <div class="sp"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="btnRefresh" onclick="refreshAllData()"><span id="refreshIcon" class="ri"><i data-lucide="refresh-cw" class="i16"></i></span><span>Muat semula</span></button>
+        <button type="button" class="btn p" onclick="switchTab('tambah')"><i data-lucide="plus" class="i16"></i><span>Tambah kerja</span></button>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Fail kerja</div><div class="v" id="statTotalFiles">0</div><div class="s">Kad progres aktif</div></div>
+      <div class="kpi hl"><div class="l">Purata progres</div><div class="v" id="statAvgProgress">0%</div><div class="s" id="statLaporanText">0 laporan harian</div></div>
+      <div class="kpi"><div class="l">Kategori aktif</div><div class="v" id="statTotalCategories">0</div><div class="s" id="statTotalTasksText">0 rekod kerja aktif</div></div>
+      <div class="kpi"><div class="l">Surveyor terlibat</div><div class="v" id="statTotalSurveyors">0</div><div class="s">Mengikut kategori &amp; fail</div></div>
+    </div>
+    <nav class="tabs" aria-label="Bahagian">
+      <button type="button" id="nav-dashboard" class="tab on" onclick="switchTab('dashboard')"><i data-lucide="layout-grid" class="i16"></i>Kad progres</button>
+      <button type="button" id="nav-tambah" class="tab" onclick="switchTab('tambah')"><i data-lucide="file-plus-2" class="i16"></i>Tambah kerja</button>
+      <button type="button" id="nav-statistik" class="tab" onclick="switchTab('statistik')"><i data-lucide="table-2" class="i16"></i>Data sheet</button>
+    </nav>
+  </section>
+
+  <!-- TAB 1: DASHBOARD -->
+  <div id="view-dashboard" class="view-section">
+    <section class="panel">
+      <div class="ph">
+        <h3>Kad progres mengikut fail</h3>
+        <span class="src">Rekod kerja + laporan harian</span>
+        <div class="sp"></div>
+        <div class="tools">
+          <label class="search"><i data-lucide="search" class="i16"></i><input type="text" id="searchInput" class="inp" oninput="renderDashboardCards()" placeholder="Cari no. fail, kawasan, surveyor, tugasan…" aria-label="Cari kad progres"></label>
+          <select id="filterKategoriSelect" class="inp" onchange="renderDashboardCards()" aria-label="Tapis kategori"><option value="ALL">Semua Kategori</option></select>
+        </div>
+      </div>
+      <div id="fileCardsContainer" class="cards">
+        <div class="empty full"><div class="spin"></div>Memuatkan kad kerja…</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- TAB 2: TAMBAH KERJA -->
+  <div id="view-tambah" class="view-section hidden">
+    <section class="panel form-panel">
+      <div class="ph">
+        <h2 id="formTitle">Borang Tambah Kerja Lapangan</h2>
+        <div class="sp"></div>
+        <button type="button" class="btn" onclick="switchTab('dashboard')"><i data-lucide="arrow-left" class="i16"></i><span>Kembali</span></button>
+        <p class="ph-sub" id="formSubtitle">Data dihantar ke Google Sheets melalui Apps Script dan menjana kad progres secara automatik</p>
+      </div>
+
+      <div id="editBanner" class="banner hidden"><i data-lucide="pencil" class="i16"></i><span id="editBannerText">Mod edit</span></div>
+
+      <form id="fieldWorkForm" class="form" onsubmit="submitForm(event)">
+        <div class="fgrid">
+          <div id="idFileWrap">
+            <label class="flab" for="idFile">No File</label>
+            <input type="text" id="idFile" class="inp" required placeholder="Cth: MCP 001/26" list="existingFilesList" autocomplete="off" oninput="updateKawasanSuggestions()">
+            <datalist id="existingFilesList"></datalist>
+          </div>
+          <div id="bilKawasanWrap">
+            <label class="flab" for="bilanganKawasan">Bilangan kawasan</label>
+            <input type="number" id="bilanganKawasan" class="inp" required min="1" max="50" step="1" inputmode="numeric" placeholder="Cth: 3" oninput="delete this.dataset.auto; onBilanganKawasanInput()">
+            <p class="hint" id="bilKawasanHint">Jumlah kawasan yang dirancang untuk No File ini.</p>
+          </div>
+          <div>
+            <label class="flab" for="tarikh">Tarikh kerja</label>
+            <input type="date" id="tarikh" class="inp" required>
+          </div>
+          <div>
+            <label class="flab" for="jangkaSiap">Tarikh jangka siap</label>
+            <input type="date" id="jangkaSiap" class="inp" required>
+          </div>
+        </div>
+
+        <div class="fgrid">
+          <div class="ms-wrap">
+            <span class="flab">Kategori (pilihan pelbagai)</span>
+            <div id="kategoriDropdownToggle" class="inp ms" role="button" tabindex="0" onclick="toggleDropdown('kategori')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDropdown('kategori')}">
+              <span id="kategoriSelectedText" class="ms-v">Pilih Kategori...</span>
+              <i data-lucide="chevron-down" class="i16 muted"></i>
+            </div>
+            <div id="kategoriDropdownMenu" class="menu hidden"></div>
+          </div>
+          <div class="ms-wrap">
+            <span class="flab">Surveyor (pilihan pelbagai)</span>
+            <div id="surveyorDropdownToggle" class="inp ms" role="button" tabindex="0" onclick="toggleDropdown('surveyor')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDropdown('surveyor')}">
+              <span id="surveyorSelectedText" class="ms-v">Pilih Surveyor...</span>
+              <i data-lucide="chevron-down" class="i16 muted"></i>
+            </div>
+            <div id="surveyorDropdownMenu" class="menu hidden"></div>
+          </div>
+        </div>
+
+        <!-- Tugasan: senarai bullet. Setiap tugasan = satu baris rekod bagi setiap kawasan -->
+        <div>
+          <label class="flab" for="tugasInput"><span class="add-only">Tugasan</span><span class="edit-only">Tugasan rekod ini</span></label>
+          <div class="tg-add">
+            <input type="text" id="tugasInput" class="inp" maxlength="200" autocomplete="off" placeholder="Cth: Cerapan Sempadan"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addTugasan()}">
+            <button type="button" class="btn add-only" onclick="addTugasan()"><i data-lucide="plus" class="i16"></i><span>Tambah</span></button>
+          </div>
+          <ul id="tugasList" class="tg-list add-only"></ul>
+          <p class="hint add-only" id="tugasHint">Taip tugasan dan tekan Enter atau Tambah. Boleh tambah lebih dari satu.</p>
+        </div>
+
+        <!-- Kawasan lapangan: satu blok setiap kawasan, dijana ikut Bilangan kawasan -->
+        <div>
+          <div class="row" style="margin-bottom:8px">
+            <span class="flab" style="margin-bottom:0">Kawasan lapangan, kuantiti &amp; unit</span>
+            <span class="muted sm" id="kawasanRowsInfo"></span>
+          </div>
+          <datalist id="kawasanList"></datalist>
+          <div id="kawasanRows" class="kr-list">
+            <div class="kr-empty">Masukkan <b>Bilangan kawasan</b> dahulu. Medan kawasan akan muncul ikut bilangan tu.</div>
+          </div>
+          <p class="hint">Pilih nama kawasan dari cadangan supaya ejaan sama.<span class="add-only"> Tekan "Langkau" untuk kawasan yang tiada kerja kali ni.</span></p>
+        </div>
+
+        <div class="form-foot">
+          <button type="button" id="cancelBtn" class="btn" onclick="switchTab('dashboard')">Batal</button>
+          <button type="submit" id="submitBtn" class="btn p"><i data-lucide="send" class="i16"></i> <span>Simpan & Jana Kad Progres</span></button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- TAB 3: DATA SHEET -->
+  <div id="view-statistik" class="view-section hidden">
+    <section class="panel">
+      <div class="ph"><h3>Jadual laporan harian (sumber peratus)</h3><span class="src ok">Sumber URL 2 · Tarikh, Nama, No File, Tugasan / Output, Progress Hari Ini</span><span class="src" id="laporanInfo"></span></div>
+      <div id="statsTableContainer" class="tw"><div class="empty">Memuatkan jadual laporan harian…</div></div>
+    </section>
+    <section class="panel">
+      <div class="ph"><h3>Jadual rekod kerja</h3><span class="src info">Sumber URL 1 · Rekod kerja lapangan (sumber target)</span></div>
+      <div id="recordsTableContainer" class="tw"><div class="empty">Memuatkan jadual rekod kerja…</div></div>
+    </section>
+    <section class="panel" id="targetPanel" style="display:none">
+      <div class="ph"><h3>Jadual target (sheet berasingan)</h3><span class="src info">CSV_TARGET_URL</span></div>
+      <div id="targetTableContainer" class="tw"><div class="empty">Memuatkan jadual target…</div></div>
+    </section>
+  </div>
+
+</main>
+
+<footer class="foot">&copy; <span id="footerYear"></span> JURUKUR MAHABOB · Sistem Statistik Jurukur Tanah · Data diselaraskan daripada Google Sheets</footer>
+<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden" role="status" aria-live="polite"><span id="toastIcon"></span><span id="toastMsg">Mesej notifikasi...</span></div>
+
+    <script>
+        // 1. URL Google Apps Script Web App (Integrasi Active Sheet)
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjImKeAe2CyiR2EEtUmG89HUo1bEQc0RDGDya6rY9TpR2Ttddcye5Ih1m_dI0wMz8PaA/exec";
+
+        // 2. URL CSV 1: Rekod Kerja Lapangan (Sumber Penjanaan Kad Progres & Sasaran Kuantiti)
+        const CSV_REKOD_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSW5BxrFQw07_bCiTfbARTgXh8qYvbMnLo4Uur7iM6ROw42DMmluHxrxXd3bKxVADyj_dLu_pCoEob8/pub?gid=1800236702&single=true&output=csv";
+
+        // 3. URL CSV 2: Laporan Harian = sumber PERATUS (Progress Hari Ini)
+        //    Header: Tarikh | Nama | No File | Tugasan / Output | Progress Hari Ini
+        const CSV_LAPORAN_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRF-BgmNrwBZVwf0ZWrePsiV2pCBo22Ud7_-m6KDIjSYVkOlvoKvzSeq0AzDUj5Hyx19FEVwyMtKIk8/pub?gid=720357072&single=true&output=csv";
+
+        // 4. Sumber TARGET progres. Header: No File | Tarikh | Surveyor | Tugas | Kuantiti | Unit (Kawasan pilihan)
+        //    Lalai = Rekod Kerja (CSV_REKOD_URL). Jika target dalam sheet lain, tampal link CSV tu di sini.
+        const CSV_TARGET_URL = CSV_REKOD_URL;
+        const TARGET_DARI_REKOD = CSV_TARGET_URL === CSV_REKOD_URL;
+
+        // Cara baca "Progress Hari Ini" bila ditulis dalam peratus (cth. "20%"):
+        //   false = progres HARI ITU sahaja, semua hari dijumlahkan (10% + 15% = 25%)
+        //   true  = progres terkumpul setakat hari itu, ambil laporan terkini (10% → 25% = 25%)
+        const PERATUS_KUMULATIF = false;
+
+        // Nombor tanpa % dan tanpa unit (cth. "20") dianggap PERATUS hari itu (= "20%").
+        // Nombor dengan unit (cth. "5 lot", "120 meter") tetap dikira kuantiti siap ÷ Kuantiti target.
+        const NOMBOR_BIASA_PERATUS = true;
+
+        // Surveyor, tugas & tarikh sama dihantar lebih sekali = laporan dikemas kini: ambil yang TERAKHIR sahaja.
+        const LAPORAN_BERGANDA_AMBIL_TERAKHIR = true;
+
+        // Senarai sama dengan Dashboard Laporan Harian supaya kategori Engineering/Strata dari sheet statistik tak tercicir
+        const DEFAULT_KATEGORI = ["Kadaster", "Kalibrasi", "Lidar", "Pemetaan Utiliti", "Strata", "TLS", "Topografi"];
+        const DEFAULT_SURVEYORS = ["Badrul", "Riduwan", "Ridhzuan", "Helmi", "Syahmi"];
+
+        // Nama kategori lama (English) dipetakan ke nama BM supaya data lama & baru dikira sama
+        const KATEGORI_ALIASES = {
+            'cadastral': 'Kadaster', 'kadastral': 'Kadaster', 'kadaster': 'Kadaster',
+            'calibration': 'Kalibrasi', 'kalibrasi': 'Kalibrasi',
+            'topography': 'Topografi', 'topografi': 'Topografi',
+            'utility mapping': 'Pemetaan Utiliti', 'pemetaan utiliti': 'Pemetaan Utiliti',
+            'lidar': 'Lidar', 'tls': 'TLS', 'strata': 'Strata'
+        };
+
+        const NAV_ACTIVE = "tab on";
+        const NAV_INACTIVE = "tab";
+
+        let rawRekodRows = [];
+        let rawLaporanRows = [];
+        let rawTargetRows = [];
+        let localAddedRecords = [];
+        let selectedKategoriList = [];
+        let selectedSurveyorList = [];
+        let lastAddedFileId = null;
+        let editingRecord = null;      // { id, updatedAt } bila borang dalam mod edit
+        const localStatus = new Map(); // id -> nilai Status Checklist yang baru ditanda (CSV terbitan lambat beberapa minit)
+        const localEdits = new Map();  // id -> rekod yang baru diedit (sementara CSV belum dikemas kini)
+        let isRefreshing = false;
+        let toastTimer = null;
+        let toastHideTimer = null;
+
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function pad2(n) { return String(n).padStart(2, '0'); }
+
+        // Tarikh hari ini ikut waktu tempatan (toISOString guna UTC, salah sebelum 8 pagi di Malaysia)
+        function todayLocalIso() {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        }
+
+        // Sokong YYYY-MM-DD (input borang) dan DD/MM/YYYY (format Google Sheets Malaysia)
+        function parseTarikh(value) {
+            const s = String(value || '').trim();
+            let y, m, d;
+            let match = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+            if (match) {
+                y = +match[1]; m = +match[2]; d = +match[3];
+            } else {
+                match = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+                if (!match) return null;
+                d = +match[1]; m = +match[2]; y = +match[3];
+                if (y < 100) y += 2000;
+            }
+            if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+            return { y, m, d };
+        }
+
+        function tarikhToIso(value) {
+            const p = parseTarikh(value);
+            return p ? `${p.y}-${pad2(p.m)}-${pad2(p.d)}` : '';
+        }
+
+        function formatTarikh(value) {
+            const p = parseTarikh(value);
+            if (p) return `${pad2(p.d)}/${pad2(p.m)}/${p.y}`;
+            const raw = String(value || '').trim();
+            return raw || '-';
+        }
+
+        // "MCP 001/26 Bangi" -> { file: "MCP 001/26", kawasan: "Bangi" } (sama dengan Apps Script)
+        // Prefix No File.
+        const FILE_PREFIX = 'MCP';
+
+        // Tahun No File diseragamkan 2 digit: "2026" -> "26" (format MCP 001/26)
+        function shortYear(y) {
+            const n = parseInt(y, 10);
+            if (String(y).length === 4 && n >= 2000 && n <= 2099) return String(n - 2000).padStart(2, '0');
+            return String(y);
+        }
+
+        function canonicalPrefix(prefix) {
+            const p = String(prefix || '').toUpperCase();
+            return p;
+        }
+
+        function splitFileAndKawasan(value) {
+            let s = String(value || '').trim().replace(/\s+/g, ' ');
+            if (/^\d+\s*\//.test(s)) s = FILE_PREFIX + ' ' + s; // "001/26" -> "MCP 001/26"
+            const m = s.match(/^([A-Za-z]{2,6})\s*(\d+)\s*\/\s*(\d+)\s*[-–·,:|]?\s*(.*)$/);
+            if (!m) return { file: s, kawasan: '' };
+            return { file: canonicalPrefix(m[1]) + ' ' + m[2].padStart(3, '0') + '/' + shortYear(m[3]), kawasan: m[4].trim() };
+        }
+
+        function kawasanKey(value) {
+            return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+        }
+
+        function kawasanLabel(value) {
+            return String(value || '').trim().replace(/\s+/g, ' ');
+        }
+
+        function canonicalKategori(value) {
+            const s = String(value || '').trim();
+            return KATEGORI_ALIASES[s.toLowerCase()] || s;
+        }
+
+        function isOfficialKategori(value) {
+            const c = canonicalKategori(value).toLowerCase();
+            return DEFAULT_KATEGORI.some(k => k.toLowerCase() === c);
+        }
+
+        // Surveyor dalam senarai rasmi.
+        function isKnownSurveyor(value) {
+            const s = String(value || '').trim().toLowerCase();
+            return DEFAULT_SURVEYORS.some(n => n.toLowerCase() === s);
+        }
+
+        // Nama surveyor/kategori bukan No File walaupun corak "huruf+nombor"
+        function isSurveyorOrCategoryName(str) {
+            return isKnownSurveyor(str) || isOfficialKategori(str);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshIcons();
+            const today = todayLocalIso();
+            const tarikhInput = document.getElementById('tarikh');
+            const jangkaInput = document.getElementById('jangkaSiap');
+            if (tarikhInput) tarikhInput.value = today;
+            if (jangkaInput) jangkaInput.value = today;
+
+            document.addEventListener('click', (e) => {
+                const katToggle = document.getElementById('kategoriDropdownToggle');
+                const katMenu = document.getElementById('kategoriDropdownMenu');
+                if (katToggle && katMenu && !katToggle.contains(e.target) && !katMenu.contains(e.target)) {
+                    katMenu.classList.add('hidden');
+                }
+                const survToggle = document.getElementById('surveyorDropdownToggle');
+                const survMenu = document.getElementById('surveyorDropdownMenu');
+                if (survToggle && survMenu && !survToggle.contains(e.target) && !survMenu.contains(e.target)) {
+                    survMenu.classList.add('hidden');
+                }
+            });
+
+            renderDropdownMenus(DEFAULT_KATEGORI, DEFAULT_SURVEYORS);
+            switchTab('dashboard');
+            if (!TARGET_DARI_REKOD) document.getElementById('targetPanel').style.display = '';
+            refreshAllData();
+        });
+
+        function switchTab(tabName, keepEdit = false) {
+            if (editingRecord && !keepEdit) exitEditMode();
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            const activeView = document.getElementById(`view-${tabName}`);
+            if (activeView) activeView.classList.remove('hidden');
+
+            ['dashboard', 'tambah', 'statistik'].forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                if (btn) btn.className = id === tabName ? NAV_ACTIVE : NAV_INACTIVE;
+            });
+        }
+
+        function renderDropdownMenus(kategoriOptions, surveyorOptions) {
+            const optionHtml = (type, value, isChecked) => `
+                <label class="opt">
+                    <input type="checkbox" value="${escapeHtml(value)}" ${isChecked ? 'checked' : ''} onchange="onMultiSelectChange('${type}', this)">
+                    <span>${escapeHtml(value)}</span>
+                </label>
+            `;
+
+            const katMenu = document.getElementById('kategoriDropdownMenu');
+            if (katMenu) {
+                katMenu.innerHTML = kategoriOptions.map(kat => optionHtml('kategori', kat, selectedKategoriList.includes(kat))).join('');
+            }
+            const survMenu = document.getElementById('surveyorDropdownMenu');
+            if (survMenu) {
+                survMenu.innerHTML = surveyorOptions.map(surv => optionHtml('surveyor', surv, selectedSurveyorList.includes(surv))).join('');
+            }
+        }
+
+        function toggleDropdown(type) {
+            const menuId = type === 'kategori' ? 'kategoriDropdownMenu' : 'surveyorDropdownMenu';
+            const otherId = type === 'kategori' ? 'surveyorDropdownMenu' : 'kategoriDropdownMenu';
+            document.getElementById(otherId)?.classList.add('hidden');
+            document.getElementById(menuId)?.classList.toggle('hidden');
+        }
+
+        function syncMultiSelectLabels() {
+            const pairs = [['kategoriSelectedText', selectedKategoriList, 'Pilih Kategori...'], ['surveyorSelectedText', selectedSurveyorList, 'Pilih Surveyor...']];
+            pairs.forEach(([id, list, placeholder]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerText = list.length ? list.join(', ') : placeholder;
+                el.className = list.length ? 'ms-v on' : 'ms-v';
+            });
+        }
+
+        function onMultiSelectChange(type, checkbox) {
+            const val = checkbox.value;
+            if (type === 'kategori') {
+                if (checkbox.checked) {
+                    if (!selectedKategoriList.includes(val)) selectedKategoriList.push(val);
+                } else {
+                    selectedKategoriList = selectedKategoriList.filter(item => item !== val);
+                }
+                const labelEl = document.getElementById('kategoriSelectedText');
+                if (selectedKategoriList.length > 0) {
+                    labelEl.innerText = selectedKategoriList.join(', ');
+                    labelEl.className = 'ms-v on';
+                } else {
+                    labelEl.innerText = 'Pilih Kategori...';
+                    labelEl.className = 'ms-v';
+                }
+            } else {
+                if (checkbox.checked) {
+                    if (!selectedSurveyorList.includes(val)) selectedSurveyorList.push(val);
+                } else {
+                    selectedSurveyorList = selectedSurveyorList.filter(item => item !== val);
+                }
+                const labelEl = document.getElementById('surveyorSelectedText');
+                if (selectedSurveyorList.length > 0) {
+                    labelEl.innerText = selectedSurveyorList.join(', ');
+                    labelEl.className = 'ms-v on';
+                } else {
+                    labelEl.innerText = 'Pilih Surveyor...';
+                    labelEl.className = 'ms-v';
+                }
+            }
+        }
+
+        async function fetchCsvText(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.text();
+        }
+
+        async function refreshAllData() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+            const icon = document.getElementById('refreshIcon');
+            if (icon) icon.classList.add('animate-spin');
+
+            try {
+                const cacheBuster = `&_t=${Date.now()}`;
+                // allSettled: satu sumber gagal tak padam data sumber yang lain
+                const [resRekod, resLaporan, resTarget] = await Promise.allSettled([
+                    fetchCsvText(CSV_REKOD_URL + cacheBuster),
+                    fetchCsvText(CSV_LAPORAN_URL + cacheBuster),
+                    TARGET_DARI_REKOD ? Promise.resolve(null) : fetchCsvText(CSV_TARGET_URL + cacheBuster)
+                ]);
+                const failed = [];
+                if (resRekod.status === 'fulfilled') rawRekodRows = parseCSV(resRekod.value);
+                else failed.push('Rekod Kerja');
+                if (resLaporan.status === 'fulfilled') rawLaporanRows = parseCSV(resLaporan.value);
+                else failed.push('Laporan Harian');
+                if (!TARGET_DARI_REKOD) {
+                    if (resTarget.status === 'fulfilled') rawTargetRows = parseCSV(resTarget.value);
+                    else failed.push('Target');
+                }
+
+                syncDynamicOptionsAndRender();
+                if (failed.length) {
+                    showToast(`Gagal memuat ${failed.join(' & ')}. Data sebelum ini dikekalkan.`, 'error');
+                }
+            } catch (err) {
+                console.error("Ralat memproses data CSV:", err);
+                showToast('Ralat memproses data. Sila cuba muat semula.', 'error');
+            } finally {
+                if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
+                isRefreshing = false;
+            }
+        }
+
+        // Parser CSV Pintar (Menyokong koma & baris baharu di dalam tanda petikan "...")
+        function parseCSV(csvText) {
+            if (!csvText || !csvText.trim()) return [];
+            const rows = [];
+            let currentRow = [];
+            let currentCell = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < csvText.length; i++) {
+                const ch = csvText[i];
+                const nextCh = csvText[i + 1];
+
+                if (ch === '"') {
+                    if (inQuotes && nextCh === '"') {
+                        currentCell += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (ch === ',' && !inQuotes) {
+                    currentRow.push(currentCell.trim());
+                    currentCell = '';
+                } else if ((ch === '\r' || ch === '\n') && !inQuotes) {
+                    if (ch === '\r' && nextCh === '\n') i++;
+                    currentRow.push(currentCell.trim());
+                    if (currentRow.some(cell => cell !== '')) rows.push(currentRow);
+                    currentRow = [];
+                    currentCell = '';
+                } else {
+                    currentCell += ch;
+                }
+            }
+            if (currentCell !== '' || currentRow.length > 0) {
+                currentRow.push(currentCell.trim());
+                if (currentRow.some(cell => cell !== '')) rows.push(currentRow);
+            }
+
+            if (rows.length === 0) return [];
+
+            const firstRow = rows[0].map(h => h.replace(/^"|"$/g, '').trim());
+            const headerKeywords = ['no', 'file', 'fail', 'tarikh', 'surveyor', 'kategori', 'tugas', 'kuantiti', 'unit', 'siap', 'peratus', 'progress', 'progres', '%', 'status', 'kerja', 'nama', 'timestamp', 'masa'];
+            const firstRowText = firstRow.join(' ').toLowerCase();
+            const hasExplicitHeaders = headerKeywords.some(kw => firstRowText.includes(kw));
+
+            const headers = hasExplicitHeaders
+                ? firstRow.map((h, i) => h || `Lajur_${i + 1}`)
+                : firstRow.map((_, i) => `Lajur_${i + 1}`);
+
+            const startIdx = hasExplicitHeaders ? 1 : 0;
+            const result = [];
+
+            for (let r = startIdx; r < rows.length; r++) {
+                const vals = rows[r];
+                if (vals.every(v => !v)) continue;
+                const obj = { __headers: headers, __rawValues: vals, __hasExplicitHeaders: hasExplicitHeaders };
+                headers.forEach((h, idx) => {
+                    obj[h] = vals[idx] !== undefined ? vals[idx].replace(/^"|"$/g, '').trim() : '';
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        function isLikelyDateOrNumberOrUnit(str) {
+            if (!str) return true;
+            const s = String(str).trim();
+            if (!s) return true;
+            if (/^-?\d+(\.\d+)?%?$/.test(s)) return true;
+            if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s) || /^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(s)) return true;
+            if (/^\d{1,2}:\d{2}(:\d{2})?(\s?(AM|PM|am|pm))?$/.test(s)) return true;
+            const nonCategoryTerms = [
+                'lot', 'ekar', 'meter', 'm', 'ha', 'hektar', 'unit',
+                'timestamp', 'masa mula', 'masa tamat', 'masa', 'kuantiti', 'qty',
+                'tarikh', 'tarikh mula', 'tarikh siap', 'jangka siap', 'no file', 'no fail', 'surveyor', 'tugas'
+            ];
+            if (nonCategoryTerms.includes(s.toLowerCase())) return true;
+            return false;
+        }
+
+        function isMetadataHeader(headerName) {
+            if (!headerName) return true;
+            const hLower = String(headerName).trim().toLowerCase();
+            const excludedHeaders = [
+                'timestamp', 'masa mula', 'masa tamat', 'masa', 'time', 'start', 'end',
+                'kuantiti', 'qty', 'quantity', 'jumlah', 'total', 'bilangan', 'luas',
+                'no file', 'no fail', 'no. fail', 'no. file', 'id file', 'fail', 'file', 'rujukan',
+                'tarikh', 'date', 'jangka siap', 'siap', 'target', 'due',
+                'surveyor', 'juruukur', 'penyelia', 'petugas', 'pic', 'nama',
+                'status', 'tugas', 'kerja', 'task', 'deskripsi', 'perkara', 'aktiviti',
+                'unit', 'ukuran', 'peratus', 'progress', 'progres', '%', 'catatan', 'remarks', 'nota',
+                'kawasan', 'lokasi', 'gambar'
+            ];
+            if (/^lajur_\d+$/i.test(hLower)) return true;
+            return excludedHeaders.some(ex => hLower === ex || hLower.includes(ex));
+        }
+
+        function splitMultiValues(rawStr) {
+            if (!rawStr) return [];
+            return String(rawStr)
+                .split(/[,;\n\r|]+|\s+&\s+|\s+dan\s+/i)
+                .map(s => s.replace(/^["'•\-*\s]+|["'\s]+$/g, '').trim())
+                .filter(s => s && !isLikelyDateOrNumberOrUnit(s) && !isMetadataHeader(s))
+                .map(canonicalKategori);
+        }
+
+        // "MCP 001/26 Bangi" dan "MCP 1/26" dianggap fail yang sama
+        function normalizeFileId(idStr) {
+            if (!idStr) return '';
+            const s = String(idStr).toUpperCase().replace(/^["']+|["']+$/g, '').trim();
+            // Kunci perbandingan: buang sifar di depan supaya "MCP 13/26" == "MCP 013/26"
+            const m = s.match(/^([A-Z]{2,6})\s*(\d+)\s*\/\s*(\d+)/);
+            if (m) return canonicalPrefix(m[1]) + String(parseInt(m[2], 10)) + '/' + String(parseInt(shortYear(m[3]), 10));
+            return s.replace(/\s+/g, '');
+        }
+
+        function addUniqueCaseInsensitive(targetSet, value) {
+            if (!value) return;
+            const cleanVal = String(value).trim();
+            if (!cleanVal || isLikelyDateOrNumberOrUnit(cleanVal) || isMetadataHeader(cleanVal)) return;
+            const exists = Array.from(targetSet).some(item => item.toLowerCase() === cleanVal.toLowerCase());
+            if (!exists) targetSet.add(cleanVal);
+        }
+
+        // Nilai sel Status Checklist → '' (belum) atau teks masa siap. "Belum"/"false"/"-" dikira belum.
+        function normStatusSiap(v) {
+            const s = String(v ?? '').trim();
+            return !s || /^(belum|false|tidak|0|-|☐)$/i.test(s) ? '' : s;
+        }
+
+        function syncDynamicOptionsAndRender() {
+            const parsedRekod = extractNormalizedRows(rawRekodRows, 'rekod');
+            const parsedLaporan = extractLaporanRows(rawLaporanRows);
+            const parsedTarget = TARGET_DARI_REKOD ? null : extractNormalizedRows(rawTargetRows, 'rekod');
+
+            // Buang rekod tempatan yang dah masuk dalam sheet, supaya tugas tak dikira dua kali
+            const rekodKey = r => [normalizeFileId(r.idFile), kawasanKey(r.kawasan), tarikhToIso(r.tarikh), String(r.tugas || '').trim().toLowerCase()].join('|');
+            const rekodKeys = new Set(parsedRekod.map(rekodKey));
+            const sheetIds = new Set(parsedRekod.map(r => r.id).filter(Boolean));
+            localAddedRecords = localAddedRecords.filter(l => !(l.id && sheetIds.has(l.id)) && !rekodKeys.has(rekodKey(l)));
+
+            // Suntingan tempatan dipakai sehingga CSV menunjukkan versi yang sama atau lebih baru
+            const applyEdit = r => {
+                const edit = r.id ? localEdits.get(r.id) : null;
+                if (!edit) return r;
+                if (r.sourceType === 'rekod' && r.updatedAt && r.updatedAt >= edit.updatedAt) {
+                    localEdits.delete(r.id);
+                    return r;
+                }
+                return { ...r, ...edit };
+            };
+            // Status checklist tempatan dipakai sampai CSV tunjuk status yang sama
+            const applyStatus = r => {
+                if (!r.id || !localStatus.has(r.id)) return r;
+                const v = localStatus.get(r.id);
+                if (r.sourceType === 'rekod' && Boolean(r.tugasSiap) === Boolean(v)) { localStatus.delete(r.id); return r; }
+                return { ...r, tugasSiap: v };
+            };
+            const editedRekod = parsedRekod.map(applyEdit).map(applyStatus);
+            localAddedRecords = localAddedRecords.map(applyEdit).map(applyStatus);
+
+            const combinedRecords = [...localAddedRecords, ...editedRekod];
+            window.__rekodById = new Map(combinedRecords.filter(r => r.id).map(r => [r.id, r]));
+
+            const allKategoriSet = new Set(DEFAULT_KATEGORI);
+            const existingFilesSet = new Set();
+            const fileSurveyorBackupMap = {};
+
+            combinedRecords.forEach(r => {
+                if (r.idFile) existingFilesSet.add(r.idFile);
+                if (r.idFile) {
+                    const fNorm = normalizeFileId(r.idFile);
+                    if (r.surveyor) {
+                        if (!fileSurveyorBackupMap[fNorm]) fileSurveyorBackupMap[fNorm] = new Set();
+                        splitMultiValues(r.surveyor).forEach(s => {
+                            if (isKnownSurveyor(s)) {
+                                addUniqueCaseInsensitive(fileSurveyorBackupMap[fNorm], s);
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Nama dalam laporan harian = surveyor yang betul-betul turun padang untuk fail itu
+            parsedLaporan.forEach(r => {
+                if (!r.idFile || !r.nama) return;
+                const fNorm = normalizeFileId(r.idFile);
+                if (!fileSurveyorBackupMap[fNorm]) fileSurveyorBackupMap[fNorm] = new Set();
+                splitNames(r.nama).forEach(n => addUniqueCaseInsensitive(fileSurveyorBackupMap[fNorm], canonicalSurveyorName(n)));
+            });
+
+            // Senarai kawasan bagi setiap fail (untuk cadangan dalam borang)
+            const kawasanByFile = {};
+            combinedRecords.forEach(r => {
+                const k = kawasanKey(r.kawasan);
+                if (!r.idFile || !k) return;
+                const fNorm = normalizeFileId(r.idFile);
+                if (!kawasanByFile[fNorm]) kawasanByFile[fNorm] = new Map();
+                if (!kawasanByFile[fNorm].has(k)) kawasanByFile[fNorm].set(k, kawasanLabel(r.kawasan));
+            });
+
+            // Bilangan kawasan dirancang bagi setiap fail: ambil nilai daripada rekod paling baru
+            // (ikut Dikemaskini, kemudian tarikh) supaya suntingan 5 → 3 terus berkesan.
+            // Rekod tempatan berada di depan combinedRecords, jadi ia menang bila seri.
+            const bilKawasanByFile = {};
+            combinedRecords.forEach(r => {
+                if (!r.idFile || !(r.bilanganKawasan > 0)) return;
+                const fNorm = normalizeFileId(r.idFile);
+                const key = String(r.updatedAt || tarikhToIso(r.tarikh) || '');
+                const cur = bilKawasanByFile[fNorm];
+                if (!cur || key > cur.key) bilKawasanByFile[fNorm] = { n: r.bilanganKawasan, key };
+            });
+
+            window.__processedData = {
+                kawasanByFile,
+                bilKawasanByFile,
+                combinedRecords,
+                parsedRekod: [...localAddedRecords, ...editedRekod],
+                parsedLaporan,
+                parsedTarget,
+                fileSurveyorBackupMap
+            };
+
+            const datalist = document.getElementById('existingFilesList');
+            if (datalist) {
+                datalist.innerHTML = Array.from(existingFilesSet).map(f => `<option value="${escapeHtml(f)}">`).join('');
+            }
+
+            const filterSelect = document.getElementById('filterKategoriSelect');
+            if (filterSelect) {
+                const currentVal = filterSelect.value;
+                const katArr = Array.from(allKategoriSet).sort();
+                filterSelect.innerHTML = `<option value="ALL">Semua Kategori</option>` + katArr.map(k => `<option value="${escapeHtml(k)}" ${currentVal === k ? 'selected' : ''}>${escapeHtml(k)}</option>`).join('');
+            }
+
+            renderDropdownMenus(DEFAULT_KATEGORI, DEFAULT_SURVEYORS);
+            updateKawasanSuggestions();
+            renderDashboardCards();
+            renderRawTables();
+        }
+
+        function updateKawasanSuggestions() {
+            const list = document.getElementById('kawasanList');
+            const map = window.__processedData?.kawasanByFile;
+            if (!list || !map) return;
+            const typed = document.getElementById('idFile')?.value || '';
+            let labels;
+            if (typed.trim()) {
+                const fNorm = normalizeFileId(splitFileAndKawasan(typed).file);
+                labels = Array.from((map[fNorm] || new Map()).values());
+            } else {
+                const all = new Map();
+                Object.values(map).forEach(m => m.forEach((v, k) => { if (!all.has(k)) all.set(k, v); }));
+                labels = Array.from(all.values());
+            }
+            list.innerHTML = labels.sort((a, b) => a.localeCompare(b)).map(k => `<option value="${escapeHtml(k)}">`).join('');
+            updateBilanganKawasanField();
+        }
+
+        // Isi auto Bilangan Kawasan bila No File dah wujud. Nilai yang pengguna taip sendiri tak ditimpa
+        // (data-auto dibuang bila pengguna menaip dalam medan tu).
+        function updateBilanganKawasanField() {
+            const el = document.getElementById('bilanganKawasan');
+            const hint = document.getElementById('bilKawasanHint');
+            const data = window.__processedData;
+            if (!el || !data) return;
+            const typed = document.getElementById('idFile')?.value || '';
+            const fNorm = typed.trim() ? normalizeFileId(splitFileAndKawasan(typed).file) : '';
+            const known = fNorm ? data.bilKawasanByFile?.[fNorm]?.n || 0 : 0;
+            const recorded = fNorm ? (data.kawasanByFile?.[fNorm]?.size || 0) : 0;
+
+            if (!el.value || el.dataset.auto === '1') {
+                if (known) {
+                    el.value = known; el.dataset.auto = '1';
+                    if (!editingRecord) {
+                        setKawasanRowCount(known);
+                        // Isi nama kawasan sedia ada fail ni ke dalam blok yang masih kosong
+                        const labels = Array.from((data.kawasanByFile?.[fNorm] || new Map()).values()).sort((a, b) => a.localeCompare(b));
+                        let changed = false;
+                        kawasanRows.forEach((r, i) => {
+                            if (labels[i] && (!r.kawasan || r.autoName)) { r.kawasan = labels[i]; r.autoName = true; changed = true; }
+                        });
+                        if (changed) renderKawasanRows();
+                    }
+                } else if (el.dataset.auto === '1') {
+                    el.value = ''; delete el.dataset.auto;
+                    if (!editingRecord) setKawasanRowCount(0);
+                }
+            }
+            if (hint) {
+                hint.textContent = known
+                    ? `Fail ini: ${known} kawasan dirancang, ${recorded} sudah ada rekod kerja.`
+                    : recorded
+                        ? `Fail ini ada ${recorded} kawasan direkod, tapi bilangan kawasan belum diisi.`
+                        : 'Jumlah kawasan yang dirancang untuk No File ini.';
+            }
+        }
+
+        // ---------- Senarai tugasan ----------
+        const MAX_TUGASAN = 20;
+        const MAX_BARIS_SEKALI = 100; // sama dengan CONFIG.MAX_BARIS_SEKALI dalam Apps Script
+        let tugasanList = [];
+
+        function addTugasan() {
+            const el = document.getElementById('tugasInput');
+            const v = String(el.value || '').trim().replace(/\s+/g, ' ');
+            if (!v) { el.focus(); return; }
+            if (tugasanList.some(t => normText(t) === normText(v))) {
+                showToast(`Tugasan "${v}" dah ada dalam senarai.`, 'error');
+                return;
+            }
+            if (tugasanList.length >= MAX_TUGASAN) {
+                showToast(`Maksimum ${MAX_TUGASAN} tugasan sekali hantar.`, 'error');
+                return;
+            }
+            tugasanList.push(v);
+            el.value = '';
+            el.focus();
+            renderTugasanList();
+        }
+
+        function removeTugasan(i) {
+            tugasanList.splice(i, 1);
+            renderTugasanList();
+        }
+
+        function renderTugasanList() {
+            const ul = document.getElementById('tugasList');
+            if (!ul) return;
+            ul.innerHTML = tugasanList.map((t, i) => `
+                <li><span>${escapeHtml(t)}</span>
+                    <button type="button" onclick="removeTugasan(${i})" aria-label="Buang tugasan ${escapeHtml(t)}" title="Buang"><i data-lucide="x" class="i14"></i></button>
+                </li>`).join('');
+            updateRekodCountInfo();
+            refreshIcons();
+        }
+
+        // "3 kawasan × 2 tugasan = 6 rekod" supaya pengguna tahu berapa baris akan masuk sheet
+        function updateRekodCountInfo() {
+            const hint = document.getElementById('tugasHint');
+            if (!hint) return;
+            const kw = kawasanRows.filter(r => !r.skip).length;
+            const tg = tugasanList.length;
+            hint.textContent = !tg
+                ? 'Taip tugasan dan tekan Enter atau Tambah. Boleh tambah lebih dari satu.'
+                : kw
+                    ? `${kw} kawasan × ${tg} tugasan = ${kw * tg} rekod. Kuantiti & unit setiap kawasan dipakai untuk semua tugasannya.`
+                    : `${tg} tugasan. Isi Bilangan kawasan untuk lihat jumlah rekod.`;
+        }
+
+        // ---------- Blok kawasan dinamik ----------
+        // Satu blok = satu kawasan (Kawasan di atas, Kuantiti + Unit di bawah) = satu rekod dalam sheet.
+        const UNIT_OPTIONS = ['Lot', 'Ekar', 'Meter', 'm²', 'Point', 'Stesen', 'Kawasan']; // sama dengan Apps Script
+        const UNIT_ALIASES = { 'm2': 'm²', 'm^2': 'm²', 'meter persegi': 'm²', 'meter per segi': 'm²', 'sq m': 'm²', 'sqm': 'm²' };
+        // Padankan unit dari sheet (cth "m2" yang ditaip terus) ke pilihan rasmi; '' jika tiada padanan
+        function matchUnit(raw) {
+            const s = String(raw || '').trim().toLowerCase();
+            if (UNIT_ALIASES[s]) return UNIT_ALIASES[s];
+            return UNIT_OPTIONS.find(u => u.toLowerCase() === s) || '';
+        }
+        const MAX_KAWASAN = 50;   // sama dengan CONFIG.MAX_BILANGAN_KAWASAN dalam Apps Script
+        let kawasanRows = [];     // [{ kawasan, kuantiti, unit, skip, autoName }]
+
+        function blankKawasanRow(unit) {
+            return { kawasan: '', kuantiti: '', unit: unit || '', skip: false, autoName: false };
+        }
+
+        // Tukar bilangan blok tanpa padam data yang dah ditaip. Blok baru warisi Unit blok pertama.
+        function setKawasanRowCount(n) {
+            const target = Math.max(0, Math.min(MAX_KAWASAN, n | 0));
+            if (target === kawasanRows.length) return;
+            while (kawasanRows.length < target) kawasanRows.push(blankKawasanRow(kawasanRows[0]?.unit));
+            kawasanRows.length = target;
+            renderKawasanRows();
+        }
+
+        function onBilanganKawasanInput() {
+            if (editingRecord) { renderKawasanRows(); return; } // mod edit: hanya satu kawasan (rekod ni)
+            const n = Number(document.getElementById('bilanganKawasan').value);
+            setKawasanRowCount(Number.isInteger(n) && n > 0 ? n : 0);
+        }
+
+        function toggleSkipKawasan(i) {
+            const r = kawasanRows[i];
+            if (!r) return;
+            if (!r.skip && kawasanRows.filter(x => !x.skip).length <= 1) {
+                showToast('Sekurang-kurangnya satu kawasan mesti diisi.', 'error');
+                return;
+            }
+            r.skip = !r.skip;
+            renderKawasanRows();
+        }
+
+        function renderKawasanRows() {
+            const box = document.getElementById('kawasanRows');
+            const info = document.getElementById('kawasanRowsInfo');
+            if (!box) return;
+            const isEdit = Boolean(editingRecord);
+            if (!kawasanRows.length) {
+                box.innerHTML = `<div class="kr-empty">Masukkan <b>Bilangan kawasan</b> dahulu. Medan kawasan akan muncul ikut bilangan tu.</div>`;
+                if (info) info.textContent = '';
+                updateRekodCountInfo();
+                return;
+            }
+            box.innerHTML = kawasanRows.map((r, i) => {
+                const unitOpts = `<option value="" disabled ${r.unit ? '' : 'selected'}>Pilih Unit...</option>`
+                    + UNIT_OPTIONS.map(u => `<option value="${u}" ${r.unit === u ? 'selected' : ''}>${u}</option>`).join('');
+                const req = r.skip ? '' : 'required';
+                const skipBtn = isEdit ? ''
+                    : `<button type="button" class="mini" onclick="toggleSkipKawasan(${i})">${r.skip ? '<i data-lucide="rotate-ccw" class="i12"></i>Pulihkan' : '<i data-lucide="x" class="i12"></i>Langkau'}</button>`;
+                return `
+                    <div class="kr${r.skip ? ' skip' : ''}">
+                        <div class="kr-h">
+                            <span class="kr-no"><i>${i + 1}</i>${isEdit ? 'Kawasan rekod ini' : `Kawasan ${i + 1}`}${r.skip ? ' · dilangkau' : ''}</span>
+                            <span class="sp"></span>${skipBtn}
+                        </div>
+                        <div class="kr-f">
+                            <div>
+                                <label class="flab" for="kr-kw-${i}">Kawasan lapangan</label>
+                                <input type="text" id="kr-kw-${i}" class="inp" list="kawasanList" autocomplete="off" maxlength="100" placeholder="Cth: Mahabob" ${req}
+                                    value="${escapeHtml(r.kawasan)}" oninput="kawasanRows[${i}].kawasan=this.value;kawasanRows[${i}].autoName=false">
+                            </div>
+                            <div class="fgrid" style="margin-top:10px">
+                                <div>
+                                    <label class="flab" for="kr-qty-${i}">Kuantiti</label>
+                                    <input type="number" id="kr-qty-${i}" class="inp" step="any" min="0" placeholder="0.00" ${req}
+                                        value="${escapeHtml(r.kuantiti)}" oninput="kawasanRows[${i}].kuantiti=this.value">
+                                </div>
+                                <div>
+                                    <label class="flab" for="kr-unit-${i}">Unit</label>
+                                    <select id="kr-unit-${i}" class="inp" ${req} onchange="kawasanRows[${i}].unit=this.value">${unitOpts}</select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+            updateRekodCountInfo();
+            if (info) {
+                const skipped = kawasanRows.filter(r => r.skip).length;
+                info.textContent = isEdit ? 'Mod edit: satu kawasan sahaja'
+                    : `${kawasanRows.length} kawasan${skipped ? ` · ${skipped} dilangkau` : ''}`;
+            }
+            refreshIcons();
+        }
+
+        function extractNormalizedRows(rows, sourceType = 'rekod') {
+            let lastContext = { idFile: '', tarikh: '', surveyor: '', jangkaSiap: '' };
+            const normalizedList = [];
+
+            (rows || []).forEach(row => {
+                const headers = row.__headers || Object.keys(row);
+                const vals = row.__rawValues || headers.map(h => row[h]);
+                const hasHeaders = row.__hasExplicitHeaders !== false;
+
+                const findIndexByHeaderKeywords = (keywords, excludeKeywords = []) => {
+                    if (!hasHeaders) return -1;
+                    for (let i = 0; i < headers.length; i++) {
+                        const hLower = String(headers[i] || '').toLowerCase().trim();
+                        if (excludeKeywords.some(ex => hLower.includes(ex))) continue;
+                        if (keywords.some(kw => hLower === kw || hLower.includes(kw))) return i;
+                    }
+                    return -1;
+                };
+
+                const findAllValuesByHeaderKeywords = (keywords, excludeKeywords = []) => {
+                    if (!hasHeaders) return [];
+                    const collected = [];
+                    for (let i = 0; i < headers.length; i++) {
+                        const hLower = String(headers[i] || '').toLowerCase().trim();
+                        if (excludeKeywords.some(ex => hLower.includes(ex))) continue;
+                        if (keywords.some(kw => hLower === kw || hLower.includes(kw))) {
+                            const v = (vals[i] || '').trim();
+                            if (v && v.toLowerCase() !== 'false' && v !== '-') {
+                                if (v.toLowerCase() === 'true' || v === '✓' || v === '✔') {
+                                    if (!isMetadataHeader(headers[i])) collected.push(headers[i].trim());
+                                } else {
+                                    collected.push(v);
+                                }
+                            }
+                        }
+                    }
+                    return collected;
+                };
+
+                const fileColIdx = findIndexByHeaderKeywords(['no file', 'no fail', 'no. fail', 'no. file', 'id file', 'no rujukan', 'rujukan', 'fail', 'file'], ['tarikh', 'masa', 'timestamp']);
+                let idFile = fileColIdx !== -1 ? (vals[fileColIdx] || '').trim() : '';
+
+                // Teka No File hanya jika sheet TIADA lajur No File. Jika lajur wujud tapi kosong (sel bergabung),
+                // biar ia warisi No File baris sebelumnya di bawah, jangan ambil nama surveyor sebagai No File.
+                if (fileColIdx === -1) {
+                    for (let i = 0; i < vals.length; i++) {
+                        const candidate = (vals[i] || '').trim();
+                        if (candidate && !isLikelyDateOrNumberOrUnit(candidate) && !isMetadataHeader(candidate) && !isSurveyorOrCategoryName(candidate)) {
+                            if (/[A-Za-z]+[\s\-_/]*\d+/i.test(candidate)) {
+                                idFile = candidate;
+                                break;
+                            }
+                        }
+                    }
+                    if (!idFile && vals[0] && !isLikelyDateOrNumberOrUnit(vals[0]) && !isMetadataHeader(vals[0]) && !isSurveyorOrCategoryName(vals[0])) {
+                        idFile = vals[0];
+                    }
+                }
+
+                // Kawasan: lajur Kawasan, atau teks selepas nombor fail (data lama "MCP 001/26 Bangi")
+                // Exclude "Bilangan Kawasan" supaya lajur nombor tak dibaca sebagai nama kawasan
+                const kawasanColIdx = findIndexByHeaderKeywords(['kawasan', 'lokasi', 'tapak'], ['bilangan', 'bil.', 'bil ', 'jumlah']);
+                const bilKawasanColIdx = findIndexByHeaderKeywords(['bilangan kawasan', 'bil kawasan', 'bil. kawasan', 'jumlah kawasan']);
+                const bilKawasanRaw = bilKawasanColIdx !== -1 ? parseInt(String(vals[bilKawasanColIdx] || '').replace(/[^0-9]/g, ''), 10) : NaN;
+                const bilanganKawasan = Number.isInteger(bilKawasanRaw) && bilKawasanRaw > 0 ? bilKawasanRaw : 0;
+                let kawasan = kawasanColIdx !== -1 ? kawasanLabel(vals[kawasanColIdx]) : '';
+                if (idFile) {
+                    const parts = splitFileAndKawasan(idFile);
+                    idFile = parts.file;
+                    if (!kawasan) kawasan = parts.kawasan;
+                }
+
+                // No File kosong (sel bergabung) warisi No File baris atas.
+                // Kawasan TIDAK diwarisi: kawasan kosong kekal "tidak dinyatakan", jangan diteka.
+                if (idFile) {
+                    lastContext.idFile = idFile;
+                } else if (!idFile && lastContext.idFile && sourceType === 'rekod') {
+                    idFile = lastContext.idFile;
+                }
+
+                const tarikhColIdx = findIndexByHeaderKeywords(['tarikh mula', 'tarikh kerja', 'tarikh', 'date'], ['siap', 'jangka', 'target', 'due', 'masa', 'timestamp']);
+                const jangkaColIdx = findIndexByHeaderKeywords(['jangka siap', 'tarikh siap', 'jangka', 'siap', 'target', 'due'], ['masa', 'timestamp']);
+                const tugasColIdx = findIndexByHeaderKeywords(['tugas', 'kerja', 'task', 'aktiviti', 'perkara', 'deskripsi'], ['kategori', 'peratus', 'fail', 'file', 'masa', 'kuantiti', 'jarak', 'luas']);
+                const qtyColIdx = findIndexByHeaderKeywords(
+                    ['kuantiti', 'qty', 'quantity', 'jarak', 'luas', 'bilangan', 'jumlah', 'meter', 'ekar', 'lot', 'ukuran'],
+                    ['peratus', '%', 'masa', 'timestamp', 'tarikh', 'jangka', 'siap', 'no file', 'no fail', 'unit', 'kawasan']
+                );
+                const unitColIdx = findIndexByHeaderKeywords(['unit', 'ukuran'], ['kuantiti', 'masa', 'jarak', 'luas']);
+
+                let tarikh = tarikhColIdx !== -1 ? (vals[tarikhColIdx] || '').trim() : '';
+                let jangkaSiap = jangkaColIdx !== -1 ? (vals[jangkaColIdx] || '').trim() : '';
+                let tugas = tugasColIdx !== -1 ? (vals[tugasColIdx] || '').trim() : '';
+                let rawQty = qtyColIdx !== -1 ? (vals[qtyColIdx] || '').trim() : '';
+                let unit = unitColIdx !== -1 ? (vals[unitColIdx] || '').trim() : '';
+
+                if (rawQty && !unit) {
+                    const unitMatch = rawQty.match(/\b(lot|ekar|meter|m|km|ha|hektar)\b/i);
+                    if (unitMatch) unit = unitMatch[1];
+                }
+
+                let kategoriValues = findAllValuesByHeaderKeywords(['kategori', 'jenis', 'skop', 'category'], ['masa', 'timestamp', 'kuantiti', 'tarikh', 'surveyor', 'fail', 'file']);
+                let surveyorValues = findAllValuesByHeaderKeywords(['surveyor', 'juruukur', 'nama surveyor', 'penyelia', 'petugas', 'pic', 'nama'], ['fail', 'file', 'kategori', 'masa', 'timestamp', 'kuantiti']);
+
+                vals.forEach((cellVal, idx) => {
+                    if (idx === fileColIdx || idx === tarikhColIdx || idx === jangkaColIdx || idx === qtyColIdx) return;
+                    const cleanCell = String(cellVal || '').trim();
+                    if (!cleanCell) return;
+                    splitMultiValues(cleanCell).forEach(part => {
+                        const matchedDefaultKat = isOfficialKategori(part) ? canonicalKategori(part) : null;
+                        if (matchedDefaultKat && !kategoriValues.some(kv => canonicalKategori(kv).toLowerCase() === matchedDefaultKat.toLowerCase())) {
+                            kategoriValues.push(matchedDefaultKat);
+                        }
+                    });
+                });
+
+                if (kategoriValues.length === 0 && !hasHeaders && vals.length >= 4) {
+                    if (!isLikelyDateOrNumberOrUnit(vals[3])) kategoriValues.push(vals[3]);
+                }
+                if (surveyorValues.length === 0 && !hasHeaders && vals.length >= 3) {
+                    if (!isLikelyDateOrNumberOrUnit(vals[2])) surveyorValues.push(vals[2]);
+                }
+
+                // ID rekod & masa dikemaskini (untuk ciri edit). Padanan nama header tepat.
+                const exactIdx = names => hasHeaders ? headers.findIndex(h => names.includes(String(h || '').trim().toLowerCase())) : -1;
+                const idColIdx = exactIdx(['id', 'id rekod']);
+                const updColIdx = exactIdx(['dikemaskini', 'last updated']);
+                const recId = idColIdx !== -1 ? String(vals[idColIdx] || '').trim() : '';
+                // Checklist: lajur "Status Checklist" berisi masa siap; kosong = belum siap
+                const statusColIdx = exactIdx(['status checklist', 'tugas siap']);
+                const tugasSiap = statusColIdx !== -1 ? normStatusSiap(vals[statusColIdx]) : '';
+                const updatedAt = updColIdx !== -1 ? String(vals[updColIdx] || '').trim() : '';
+
+                const knownColIndices = new Set([statusColIdx, fileColIdx, kawasanColIdx, bilKawasanColIdx, tarikhColIdx, jangkaColIdx, tugasColIdx, qtyColIdx, unitColIdx, idColIdx, updColIdx]);
+                headers.forEach((h, idx) => {
+                    const hRaw = String(h || '').trim();
+                    const isOfficialKatHeader = isOfficialKategori(hRaw);
+                    const hTrim = isOfficialKatHeader ? canonicalKategori(hRaw) : hRaw;
+                    if (!knownColIndices.has(idx) && (!isMetadataHeader(hTrim) || isOfficialKatHeader)) {
+                        const cellVal = (vals[idx] || '').trim();
+                        if (cellVal && cellVal.toLowerCase() !== 'false' && cellVal !== '0' && cellVal !== '-') {
+                            if (cellVal.toLowerCase() === 'true' || cellVal === '✓' || cellVal === '✔') {
+                                kategoriValues.push(hTrim);
+                            }
+                        }
+                    }
+                });
+
+                const parsedQty = parseFloat(String(rawQty).replace(/[^0-9.-]/g, ''));
+                const kuantiti = !isNaN(parsedQty) ? parsedQty : 0;
+
+                if ((idFile || kategoriValues.length > 0 || surveyorValues.length > 0 || kuantiti > 0)) {
+                    normalizedList.push({
+                        id: recId,
+                        updatedAt: updatedAt,
+                        idFile: idFile,
+                        kawasan: kawasan,
+                        bilanganKawasan: bilanganKawasan,
+                        tarikh: tarikh,
+                        surveyor: surveyorValues.join(', '),
+                        kategori: kategoriValues.join(', '),
+                        tugas: tugas,
+                        kuantiti: kuantiti,
+                        unit: unit,
+                        jangkaSiap: jangkaSiap,
+                        tugasSiap: tugasSiap,
+                        sourceType: sourceType
+                    });
+                }
+            });
+
+            return normalizedList;
+        }
+
+        // =====================================================================
+        // ENJIN PROGRES (dua sumber)
+        //   TARGET  : Rekod Kerja (atau CSV_TARGET_URL) → Tugas + Kuantiti + Unit
+        //   PERATUS : Laporan harian → Progress Hari Ini
+        // Setiap laporan dipadankan ke SATU tugas target (No File sama + Tugas paling serupa).
+        // Progres tugas = jumlah siap ÷ Kuantiti target. Progres fail = purata tugas yang ada target.
+        // =====================================================================
+
+        // Teks untuk perbandingan: huruf kecil, tanpa tanda baca, ruang tunggal
+        function normText(s) {
+            return String(s || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        // "Progress Hari Ini" → { qty, pct, done }
+        //   "5" / "5 lot" / "1,250 m" → qty   ·   "20%" → pct   ·   "Siap" / "Selesai" → done
+        function parseProgressValue(raw) {
+            const s = String(raw || '').trim();
+            const out = { qty: null, pct: null, done: false };
+            if (!s || s === '-') return out;
+            const cleaned = s.replace(/(\d),(\d{3})(?!\d)/g, '$1$2'); // 1,250 → 1250 (pemisah ribu)
+            const m = cleaned.match(/-?\d+(?:[.,]\d+)?/);
+            if (m) {
+                const n = parseFloat(m[0].replace(',', '.'));
+                if (!isNaN(n) && n > 0) {
+                    const adaUnit = /\d\s*[a-z]/i.test(cleaned.slice(m.index)); // "5 lot", "120m"
+                    if (cleaned.includes('%') || (NOMBOR_BIASA_PERATUS && !adaUnit)) out.pct = n;
+                    else out.qty = n;
+                }
+            } else if (/\b(siap|selesai|complete|completed|done)\b/i.test(s) && !/\b(belum|tak|tidak|x)\b/i.test(s)) {
+                out.done = true;
+            }
+            return out;
+        }
+
+        function splitNames(raw) {
+            return String(raw || '').split(/[,;\/\n&]+|\s+dan\s+/i).map(s => s.trim()).filter(Boolean);
+        }
+
+        // "Muhammad Syahmi" → "Syahmi" jika nama rasmi ada dalam teks; jika tidak, kekalkan nama asal
+        function canonicalSurveyorName(name) {
+            const n = normText(name);
+            const hit = DEFAULT_SURVEYORS.find(s => new RegExp('\\b' + normText(s) + '\\b').test(n));
+            return hit || kawasanLabel(name);
+        }
+
+        function extractLaporanRows(rows) {
+            if (!rows || !rows.length) return [];
+            const first = rows[0];
+            const hasHeaders = first.__hasExplicitHeaders !== false;
+            const hl = (first.__headers || []).map(normText);
+            const find = (cands, exclude = []) => hasHeaders
+                ? hl.findIndex(h => !exclude.some(e => h.includes(e)) && cands.some(c => h === c || h.includes(c)))
+                : -1;
+            // Kedudukan lalai ikut susunan header asal jika nama header tak dijumpai
+            const pick = (idx, fallback) => idx !== -1 ? idx : fallback;
+            const iTarikh = pick(find(['tarikh', 'date'], ['siap', 'jangka', 'timestamp']), 0);
+            const iNama = pick(find(['nama', 'surveyor', 'juruukur']), 1);
+            const iFile = pick(find(['no file', 'no fail', 'file', 'fail']), 2);
+            const iTugas = pick(find(['tugasan', 'tugas', 'output', 'task']), 3);
+            const iProg = pick(find(['progress hari ini', 'progres hari ini', 'progress', 'progres']), 4);
+
+            let lastFile = '';
+            const out = [];
+            rows.forEach(row => {
+                const v = row.__rawValues || [];
+                const get = i => String(v[i] ?? '').trim();
+                let fileRaw = get(iFile);
+                const tugasan = get(iTugas);
+                const progressRaw = get(iProg);
+                if (!fileRaw && !tugasan && !progressRaw) return;
+                // Sel No File bergabung: warisi No File baris atas
+                if (!fileRaw && lastFile) fileRaw = lastFile;
+                if (fileRaw) lastFile = fileRaw;
+                const parts = splitFileAndKawasan(fileRaw);
+                out.push({
+                    idFile: parts.file,
+                    kawasanHint: parts.kawasan, // cth. "MCP 001/26 Bangi" → "Bangi"
+                    tarikh: get(iTarikh),
+                    tarikhIso: tarikhToIso(get(iTarikh)),
+                    nama: get(iNama),
+                    tugasan,
+                    progressRaw,
+                    ...parseProgressValue(progressRaw)
+                });
+            });
+            return out;
+        }
+
+        // Dua perkataan dikira sama jika serupa, atau satu ialah singkatan (awalan) yang lain,
+        // cth. "topo" ↔ "topografi", "kadas" ↔ "kadaster". Minimum 4 huruf supaya "lot"/"ukr" tak tersalah padan.
+        function wordMatch(x, y) {
+            if (x === y) return true;
+            if (Math.min(x.length, y.length) < 4 || /^\d+$/.test(x) || /^\d+$/.test(y)) return false;
+            return x.startsWith(y) || y.startsWith(x);
+        }
+
+        // Perkataan bermakna dalam teks laporan; nama kategori English ("topography") ditambah versi BM
+        function reportWords(text) {
+            const words = normText(text).split(' ').filter(w => w.length > 2);
+            words.slice().forEach(w => {
+                const alias = KATEGORI_ALIASES[w];
+                if (alias) normText(alias).split(' ').forEach(x => words.push(x));
+            });
+            return words;
+        }
+
+        // Skor keserupaan laporan ↔ tugas rekod (0 = tak padan)
+        // Kawasan dalam No File laporan serasi dengan kawasan tugas: sama, atau satu mengandungi yang lain
+        // ("Bangi" ↔ "Bandar Baru Bangi"). Kosong di mana-mana pihak = tiada sekatan.
+        function kawasanSerasi(hint, kw) {
+            if (!hint || !kw) return true;
+            return hint === kw || kw.includes(hint) || hint.includes(kw);
+        }
+
+        // opts.abaikanKawasan: kira skor tugas sahaja (untuk diagnosis kenapa laporan tak padan)
+        function matchScore(lap, task, opts) {
+            const a = normText(lap.tugasan);
+            const b = normText(task.tugas);
+            if (!a) return 0;
+            const aw = reportWords(lap.tugasan);
+            const has = w => aw.some(x => wordMatch(x, w));
+            let score = 0;
+            if (b && a === b) score = 100;
+            else if (b && b.length >= 4 && (a.includes(b) || b.includes(a))) score = 60 + Math.min(b.length, 30);
+            else {
+                const tb = b.split(' ').filter(w => w.length > 2);
+                const hit = tb.filter(has).length;
+                if (tb.length && hit / tb.length >= 0.6) score = 30 + hit;
+                else {
+                    // Fallback: laporan sebut kategori tugas (penuh atau singkatan), cth. "Topo ±9746 m²" → Topografi
+                    const cats = splitMultiValues(task.kategori).map(normText).filter(Boolean);
+                    if (cats.some(c => a === c || a.includes(c) || c.split(' ').every(has))) score = 20;
+                }
+            }
+            if (!score) return 0;
+            if (opts && opts.abaikanKawasan) return score;
+            const kw = kawasanKey(task.kawasan);
+            const hint = kawasanKey(lap.kawasanHint);
+            if (!kawasanSerasi(hint, kw)) return 0;             // No File sebut kawasan lain
+            if (hint && kw) score += 5;
+            if (kw && normText(lap.tugasan).includes(normText(kw))) score += 5; // kawasan disebut dalam Tugasan
+            return score;
+        }
+
+        // Terangkan KENAPA laporan tak padan, dengan senarai tugas fail ini supaya pengguna nampak apa nak dibetulkan
+        function sebabTakPadan(lap, tasks) {
+            const senarai = tasks.map(t => {
+                const kat = [...new Set(splitMultiValues(t.kategori).map(canonicalKategori))].join('/');
+                const kw = kawasanLabel(t.kawasan);
+                return `${t.tugas || 'Tanpa tugas'}${kat ? ` (${kat})` : ''}${kw ? ` @ ${kw}` : ''}`;
+            });
+            const ringkas = senarai.slice(0, 4).join('; ') + (senarai.length > 4 ? `; +${senarai.length - 4} lagi` : '');
+            if (!tasks.length) return 'fail ini tiada tugas dalam Rekod Kerja';
+            const padanTugas = tasks.filter(t => matchScore(lap, t, { abaikanKawasan: true }) > 0);
+            if (padanTugas.length) {
+                const kws = [...new Set(padanTugas.map(t => kawasanLabel(t.kawasan)).filter(Boolean))].join(', ');
+                return `kawasan "${lap.kawasanHint}" dalam No File tak sama dengan kawasan tugas (${kws || '-'})`;
+            }
+            return `tiada tugas sepadan. Tugas fail ini: ${ringkas}`;
+        }
+
+        // Padankan setiap laporan fail ini ke satu tugas. Laporan kabur/tak padan dikumpul berasingan.
+        function assignLaporanToTasks(tasks, laporanForFile) {
+            const byTask = tasks.map(() => []);
+            const unmatched = [];
+            laporanForFile.forEach(lap => {
+                let best = 0, top = [];
+                tasks.forEach((t, i) => {
+                    const s = matchScore(lap, t);
+                    if (s > best) { best = s; top = [i]; }
+                    else if (s && s === best) top.push(i);
+                });
+                if (!top.length) { unmatched.push({ ...lap, reason: sebabTakPadan(lap, tasks) }); return; }
+                // Seri antara kawasan berbeza: jangan teka, minta pengguna nyatakan kawasan
+                const kws = new Set(top.map(i => kawasanKey(tasks[i].kawasan)));
+                if (kws.size > 1) { unmatched.push({ ...lap, reason: 'tugas sama di beberapa kawasan' }); return; }
+                byTask[top[0]].push(lap);
+            });
+            return { byTask, unmatched };
+        }
+
+        function computeTaskProgress(task, reps) {
+            const target = task.kuantiti > 0 ? task.kuantiti : 0;
+            // Susunan CSV = susunan hantar. Sort stabil ikut tarikh, kemudian buang laporan berganda hari sama.
+            let sorted = reps.slice().sort((x, y) => (x.tarikhIso || '').localeCompare(y.tarikhIso || ''));
+            let replacedCount = 0;
+            if (LAPORAN_BERGANDA_AMBIL_TERAKHIR) {
+                const last = new Map();
+                sorted.forEach((r, i) => {
+                    const key = r.tarikhIso ? `${r.tarikhIso}|${normText(r.nama)}` : `#${i}`;
+                    if (last.has(key)) replacedCount++;
+                    last.set(key, r);
+                });
+                const keep = new Set(last.values());
+                sorted = sorted.filter(r => keep.has(r));
+            }
+            const doneQty = sorted.reduce((t, r) => t + (r.qty || 0), 0);
+            const pctReps = sorted.filter(r => r.pct !== null);
+            const pctVal = pctReps.length
+                ? (PERATUS_KUMULATIF ? pctReps[pctReps.length - 1].pct : pctReps.reduce((t, r) => t + r.pct, 0))
+                : null;
+            const isDone = sorted.some(r => r.done);
+            const parts = [];
+            if (target > 0 && doneQty > 0) parts.push(doneQty / target * 100);
+            if (pctVal !== null) parts.push(pctVal);
+            let pct = isDone ? 100 : (PERATUS_KUMULATIF ? Math.max(0, ...parts) : parts.reduce((a, b) => a + b, 0));
+            const overTarget = pct > 100.5; // jumlah lebih 100%: kemungkinan salah isi, papar amaran
+            pct = Math.min(100, Math.max(0, pct));
+            const datesWithValue = sorted.map(r => r.tarikhIso).filter(Boolean);
+            return {
+                tugas: task.tugas || 'Tanpa tugas',
+                kategori: [...new Set(splitMultiValues(task.kategori))].join(', '),
+                percentage: Math.round(pct * 10) / 10,
+                // "Siap" = kuantiti penuh; laporan % sahaja tiada kuantiti siap (jangan papar 0 / target)
+                doneQty: Math.round((isDone && target > 0 ? Math.max(doneQty, target) : doneQty) * 100) / 100,
+                targetQty: Math.round(target * 100) / 100,
+                unit: task.unit || 'Unit',
+                hasTarget: target > 0 || pctVal !== null || isDone,
+                reportCount: sorted.length,
+                replacedCount,
+                overTarget,
+                lastDate: datesWithValue.length ? datesWithValue[datesWithValue.length - 1] : ''
+            };
+        }
+
+        // Ringkasan untuk Operations Hub (Dashboard Utama). Hub muat app ini dalam iframe dan baca mesej ini,
+        // Hub bergantung pada medan di bawah: tukar dengan berhati-hati.
+        function publishSummary(groups, totalRecords, surveyorCount, avgProgress) {
+            // Jangan tulis ganti ringkasan lama dengan "0 fail" bila CSV belum/gagal dimuat
+            if (!rawRekodRows.length && !rawLaporanRows.length && !localAddedRecords.length) return;
+            const summary = {
+                v: 1,
+                at: new Date().toISOString(),
+                totalFiles: groups.length,
+                avgProgress: avgProgress,
+                totalRecords: totalRecords,
+                surveyorCount: surveyorCount,
+                files: groups.map(g => ({
+                    idFile: g.idFile,
+                    kawasan: g.kawasanLabels,
+                    bilanganKawasan: g.bilKawasan || 0, // medan baru: 0 = belum diisi
+                    progress: Math.min(100, Math.max(0, Math.round(isNaN(g.progress) ? 0 : g.progress))),
+                    jangkaSiap: tarikhToIso(g.jangkaSiap),
+                    surveyors: g.surveyorsArr,
+                    kategori: g.categoriesArr
+                }))
+            };
+            try { localStorage.setItem('jm_status_site_v1', JSON.stringify(summary)); } catch (e) {}
+            try {
+                if (window.parent !== window) {
+                    const o = location.origin;
+                    window.parent.postMessage({ jmStatusSite: summary }, o && o !== 'null' ? o : '*');
+                }
+            } catch (e) {}
+        }
+
+        // "2026-11-19T19:20:05" → "19/11/2026 19:20"; teks lain dipapar seadanya
+        function formatSiapPada(v) {
+            const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+            return m ? `${m[3]}/${m[2]}/${m[1]}${m[4] ? ` ${m[4]}:${m[5]}` : ''}` : String(v);
+        }
+
+        // Tanda / nyahtanda tugasan. Disimpan terus ke lajur Status Checklist; tak ubah "Dikemaskini"
+        // supaya orang yang tengah edit rekod yang sama tak kena conflict.
+        async function toggleTugasSiap(id, el) {
+            const siap = el.checked;
+            if (!id) { el.checked = !siap; return; }
+            const row = el.closest('.ck');
+            el.disabled = true;
+            row?.classList.toggle('done', siap); // optimistik: terus nampak
+            try {
+                const result = await postToAppsScript({ action: 'setStatus', id, siap });
+                if (result.status !== 'ok') throw new Error(result.message || 'Status gagal disimpan.');
+                localStatus.set(id, result.tugasSiap || '');
+                try { syncDynamicOptionsAndRender(); } catch (err) { console.error(err); }
+                showToast(siap ? 'Tugasan ditanda siap.' : 'Tanda siap dibuang.', 'success');
+            } catch (err) {
+                el.checked = !siap;
+                row?.classList.toggle('done', !siap);
+                el.disabled = false;
+                showToast(err.message || 'Status gagal disimpan. Cuba lagi.', 'error');
+            }
+        }
+
+        function renderDashboardCards() {
+            const container = document.getElementById('fileCardsContainer');
+            if (!container || !window.__processedData) return;
+
+            const { combinedRecords, parsedLaporan, parsedTarget, fileSurveyorBackupMap, bilKawasanByFile } = window.__processedData;
+            let matchedCount = 0, unmatchedCount = 0;
+            const laporanAll = parsedLaporan || [];
+            const searchQuery = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+            const filterKat = document.getElementById('filterKategoriSelect')?.value || 'ALL';
+            const round2 = n => Math.round(n * 100) / 100;
+
+            // ---- Kumpul rekod ikut No File ----
+            const fileGroupsMap = new Map();
+            combinedRecords.forEach((rec, idx) => {
+                const rawFileId = (rec.idFile || `FAIL-${idx + 1}`).trim();
+                const normKey = normalizeFileId(rawFileId);
+
+                if (!fileGroupsMap.has(normKey)) {
+                    fileGroupsMap.set(normKey, {
+                        normKey,
+                        idFile: rawFileId,
+                        tarikhMula: '',
+                        jangkaSiap: '',
+                        surveyors: new Set(),
+                        categories: new Set(),
+                        rekodEntries: [],
+                        quantitiesByUnit: {},
+                        isNewlyAdded: rec.isNewlyAdded || (lastAddedFileId && normalizeFileId(lastAddedFileId) === normKey)
+                    });
+                }
+                const grp = fileGroupsMap.get(normKey);
+
+                // Mula = tarikh paling awal, Siap = jangka siap paling lewat (bukan ikut susunan baris)
+                const tIso = tarikhToIso(rec.tarikh);
+                const jIso = tarikhToIso(rec.jangkaSiap);
+                if (tIso && (!grp.tarikhMula || tIso < grp.tarikhMula)) grp.tarikhMula = tIso;
+                if (jIso && (!grp.jangkaSiap || jIso > grp.jangkaSiap)) grp.jangkaSiap = jIso;
+
+                splitMultiValues(rec.surveyor).forEach(s => {
+                    if (isKnownSurveyor(s)) addUniqueCaseInsensitive(grp.surveyors, s);
+                });
+                splitMultiValues(rec.kategori).forEach(k => {
+                    if (isOfficialKategori(k)) addUniqueCaseInsensitive(grp.categories, canonicalKategori(k));
+                });
+
+                grp.rekodEntries.push(rec);
+                // Jumlah sasaran ikut unit (dulu hanya ambil rekod pertama bagi setiap unit)
+                if (rec.kuantiti > 0) {
+                    const u = rec.unit || 'Unit';
+                    grp.quantitiesByUnit[u] = round2((grp.quantitiesByUnit[u] || 0) + rec.kuantiti);
+                }
+            });
+
+            // Target fail ini: dari Rekod Kerja (lalai) atau dari sheet target berasingan
+            const kiraProgresFail = (grp, laporanForFile) => {
+                const tasks = parsedTarget
+                    ? parsedTarget.filter(t => t.idFile && normalizeFileId(t.idFile) === grp.normKey && (t.tugas || t.kuantiti > 0))
+                    : grp.rekodEntries;
+                const { byTask, unmatched } = assignLaporanToTasks(tasks, laporanForFile);
+                const taskProgress = tasks.map((t, i) => ({ ...computeTaskProgress(t, byTask[i]), kawasan: kawasanLabel(t.kawasan), id: t.id || '', siap: t.tugasSiap || '' }));
+                matchedCount += laporanForFile.length - unmatched.length;
+                unmatchedCount += unmatched.length;
+                const counted = taskProgress.filter(t => t.hasTarget);
+                const progress = counted.length ? counted.reduce((sum, t) => sum + t.percentage, 0) / counted.length : 0;
+                return { taskProgress, unmatchedLaporan: unmatched, progress: Math.round(progress * 10) / 10, hasAnyTarget: counted.length > 0 };
+            };
+
+            let fileGroups = Array.from(fileGroupsMap.values()).map(grp => {
+                if (fileSurveyorBackupMap && fileSurveyorBackupMap[grp.normKey]) {
+                    fileSurveyorBackupMap[grp.normKey].forEach(s => addUniqueCaseInsensitive(grp.surveyors, s));
+                }
+
+                // Pecahan kawasan: senarai tugas, sasaran & jangka siap sahaja (tiada peratus)
+                const kMap = new Map();
+                grp.rekodEntries.forEach(r => {
+                    const key = kawasanKey(r.kawasan);
+                    if (!kMap.has(key)) kMap.set(key, { key, label: key ? kawasanLabel(r.kawasan) : 'Kawasan tidak dinyatakan', tugasCount: 0, qty: {}, jangka: '' });
+                    const k = kMap.get(key);
+                    k.tugasCount++;
+                    if (r.kuantiti > 0) {
+                        const u = r.unit || 'Unit';
+                        k.qty[u] = round2((k.qty[u] || 0) + r.kuantiti);
+                    }
+                    const j = tarikhToIso(r.jangkaSiap);
+                    if (j && j > k.jangka) k.jangka = j;
+                });
+                const kawasanList = Array.from(kMap.values())
+                    .sort((a, b) => (a.key === '') - (b.key === '') || a.label.localeCompare(b.label));
+
+                const laporanForFile = laporanAll.filter(r => r.idFile && normalizeFileId(r.idFile) === grp.normKey);
+                const lastAll = laporanForFile.map(r => r.tarikhIso).filter(Boolean).sort();
+                const newest = grp.rekodEntries.slice()
+                    .sort((a, b) => tarikhToIso(b.tarikh).localeCompare(tarikhToIso(a.tarikh)))[0];
+
+                return {
+                    ...grp,
+                    categoriesArr: Array.from(grp.categories),
+                    surveyorsArr: Array.from(grp.surveyors),
+                    kawasanList,
+                    kawasanLabels: kawasanList.filter(k => k.key).map(k => k.label),
+                    bilKawasan: bilKawasanByFile?.[grp.normKey]?.n || 0,
+                    latestTask: newest?.tugas || 'Kerja ukur lapangan direkodkan',
+                    laporanCount: laporanForFile.length,
+                    lastReport: lastAll.length ? lastAll[lastAll.length - 1] : '',
+                    laporanText: laporanForFile.map(r => r.tugasan.toLowerCase()).join(' '),
+                    ...kiraProgresFail(grp, laporanForFile)
+                };
+            });
+
+            const rekodFileKeys = new Set(fileGroupsMap.keys());
+            const orphanCount = laporanAll.filter(r => r.idFile && !rekodFileKeys.has(normalizeFileId(r.idFile))).length;
+            const info = document.getElementById('laporanInfo');
+            if (info) {
+                const bits = [`${laporanAll.length} laporan`, `${matchedCount} dikira`];
+                if (unmatchedCount) bits.push(`${unmatchedCount} tak padan tugas`);
+                if (orphanCount) bits.push(`${orphanCount} No File tiada dalam rekod`);
+                info.textContent = bits.join(' · ');
+            }
+
+            const allSurveyorsGlobal = new Set();
+            const allCategoriesGlobal = new Set();
+            fileGroups.forEach(g => {
+                g.surveyorsArr.forEach(s => allSurveyorsGlobal.add(s));
+                g.categoriesArr.forEach(c => allCategoriesGlobal.add(c));
+            });
+
+            // Purata global: fail yang ada target sahaja (fail tanpa target tak tarik purata ke bawah)
+            const filesWithTarget = fileGroups.filter(g => g.hasAnyTarget);
+            const avgProgressGlobal = filesWithTarget.length
+                ? Math.round(filesWithTarget.reduce((sum, g) => sum + g.progress, 0) / filesWithTarget.length)
+                : 0;
+            publishSummary(fileGroups, combinedRecords.length, allSurveyorsGlobal.size, avgProgressGlobal);
+
+            document.getElementById('statTotalFiles').innerText = fileGroups.length;
+            document.getElementById('statAvgProgress').innerText = `${avgProgressGlobal}%`;
+            document.getElementById('statLaporanText').innerText = `${laporanAll.length} laporan harian`;
+            document.getElementById('statTotalCategories').innerText = allCategoriesGlobal.size;
+            document.getElementById('statTotalSurveyors').innerText = allSurveyorsGlobal.size;
+            document.getElementById('statTotalTasksText').innerText = `${combinedRecords.length} rekod kerja aktif`;
+
+            if (filterKat !== 'ALL') {
+                fileGroups = fileGroups.filter(g => g.categoriesArr.some(c => c.toLowerCase() === filterKat.toLowerCase()));
+            }
+            if (searchQuery) {
+                fileGroups = fileGroups.filter(g =>
+                    g.idFile.toLowerCase().includes(searchQuery) ||
+                    g.kawasanLabels.some(k => k.toLowerCase().includes(searchQuery)) ||
+                    g.surveyorsArr.some(s => s.toLowerCase().includes(searchQuery)) ||
+                    g.categoriesArr.some(c => c.toLowerCase().includes(searchQuery)) ||
+                    g.rekodEntries.some(r => String(r.tugas || '').toLowerCase().includes(searchQuery)) ||
+                    g.laporanText.includes(searchQuery)
+                );
+            }
+
+            if (fileGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="empty full">
+                        <i data-lucide="folder-open" class="i24"></i>
+                        <b>Tiada kad dijumpai</b>
+                        <span>Tambah kerja baru atau ubah kata kunci carian.</span>
+                    </div>
+                `;
+                refreshIcons();
+                return;
+            }
+
+            const todayIso = todayLocalIso();
+            const daysUntil = iso => Math.round((new Date(iso + 'T00:00:00') - new Date(todayIso + 'T00:00:00')) / 864e5);
+
+            container.innerHTML = fileGroups.map(grp => {
+                const pct = Math.min(100, Math.max(0, Math.round(grp.progress || 0)));
+                const dd = grp.jangkaSiap ? daysUntil(grp.jangkaSiap) : null;
+                const isLate = pct < 100 && dd !== null && dd < 0;
+                const st = !grp.hasAnyTarget ? ['Tiada target', 'mute']
+                    : pct >= 100 ? ['Selesai', 'ok']
+                    : isLate ? ['Lewat jangka siap', 'bad']
+                    : pct > 0 ? ['Dalam progres', 'info']
+                    : ['Baru direkod', 'mute'];
+                const barCol = pct >= 100 ? 'var(--ok)' : isLate ? 'var(--bad)' : 'var(--ind-600)';
+                const dueTxt = dd === null || pct >= 100 ? ''
+                    : ` <em class="${dd < 0 ? 'bad' : dd <= 14 ? 'warn' : ''}">· ${dd < 0 ? Math.abs(dd) + ' hari lewat' : dd === 0 ? 'hari ini' : dd + ' hari lagi'}</em>`;
+
+                // Checklist tugasan, dikumpul ikut kawasan. Setiap item: checkbox + bar progres laporan.
+                const taskItemHtml = tp => {
+                    const cPct = Math.min(100, Math.max(0, Math.round(tp.percentage || 0)));
+                    const cBarColor = cPct >= 100 ? 'var(--ok)' : 'var(--ind-600)';
+                    const frac = tp.doneQty <= 0 ? `<span>${tp.reportCount} laporan</span>`
+                        : tp.targetQty > 0 ? `<span>Siap <b class="g">${tp.doneQty}</b> / ${tp.targetQty} ${escapeHtml(tp.unit)}</span>`
+                        : `<span>Siap <b class="g">${tp.doneQty}</b></span>`;
+                    const right = !tp.reportCount ? `<span>Belum ada laporan</span>${tp.hasTarget ? `<b>0%</b>` : ''}`
+                        : tp.hasTarget ? `${frac}<b>${cPct}%</b>` : `${frac}<span class="warn-t">Tiada target</span>`;
+                    const notes = [
+                        tp.overTarget ? 'Jumlah laporan melebihi 100%, semak semula' : '',
+                        tp.replacedCount ? `${tp.replacedCount} laporan berganda diganti dengan yang terkini` : ''
+                    ].filter(Boolean);
+                    const siapTxt = tp.siap ? formatSiapPada(tp.siap) : '';
+                    // Tick auto bila laporan harian dah dipadankan ke tugasan ni. Dikira dari data laporan
+                    // (bukan disimpan), jadi checkbox dikunci: tak boleh nyahtanda selagi laporan wujud.
+                    const autoTick = tp.reportCount > 0;
+                    const ticked = Boolean(tp.siap) || autoTick;
+                    const ckTitle = autoTick ? 'Ditanda auto: laporan harian diterima untuk tugasan ini'
+                        : !tp.id ? 'Rekod belum ada ID. Muat semula selepas rekod disimpan.'
+                        : tp.siap ? 'Tanda belum siap' : 'Tanda siap';
+                    const autoTxt = autoTick
+                        ? `✓ Laporan harian diterima${tp.lastDate ? ` · terkini ${formatSiapPada(tp.lastDate)}` : ''} (${tp.reportCount} laporan)`
+                        : '';
+                    return `
+                        <div class="cr ck${ticked ? ' done' : ''}">
+                            <input type="checkbox" ${ticked ? 'checked' : ''} ${tp.id && !autoTick ? '' : 'disabled'} title="${ckTitle}"
+                                aria-label="${escapeHtml(tp.tugas)}${tp.kawasan ? ' di ' + escapeHtml(tp.kawasan) : ''}"
+                                onchange="toggleTugasSiap('${escapeHtml(tp.id)}', this)">
+                            <div class="ck-b">
+                                <div class="row">
+                                    <span class="cr-n"><span title="${escapeHtml(tp.kategori)}">${escapeHtml(tp.tugas)}</span></span>
+                                    <span class="cr-v">${right}</span>
+                                </div>
+                                <div class="bar sm"><i style="width:${tp.hasTarget && cPct > 0 ? Math.max(cPct, 4) : 0}%;background:${cBarColor}"></i></div>
+                                ${autoTxt ? `<p class="ck-when">${escapeHtml(autoTxt)}</p>` : ''}
+                                ${siapTxt ? `<p class="ck-when">✓ Ditanda siap ${escapeHtml(siapTxt)}</p>` : ''}
+                                ${notes.length ? `<p class="meta warn-t" style="margin-top:4px">${notes.map(escapeHtml).join(' · ')}</p>` : ''}
+                            </div>
+                        </div>`;
+                };
+                const ckGroups = new Map();
+                grp.taskProgress.forEach(tp => {
+                    const k = kawasanKey(tp.kawasan) || '__tiada__';
+                    if (!ckGroups.has(k)) ckGroups.set(k, { label: tp.kawasan || 'Kawasan tidak dinyatakan', items: [] });
+                    ckGroups.get(k).items.push(tp);
+                });
+                const taskBarsHtml = Array.from(ckGroups.values()).map(g => {
+                    const siapN = g.items.filter(t => t.siap || t.reportCount > 0).length;
+                    return `
+                        <div class="ck-grp">
+                            <div class="ck-h"><i data-lucide="map-pin" class="i12"></i><span>${escapeHtml(g.label)}</span><b>${siapN}/${g.items.length} tugasan ditanda</b></div>
+                            ${g.items.map(taskItemHtml).join('')}
+                        </div>`;
+                }).join('');
+
+                const um = grp.unmatchedLaporan || [];
+                const unmatchedHtml = um.length ? `
+                        <div class="kw nokey">
+                            <div class="row">
+                                <span class="kw-n"><i data-lucide="alert-triangle" class="i14"></i><span>Laporan tak dikira (${um.length})</span></span>
+                            </div>
+                            <p class="meta">${um.slice(0, 5).map(r => `"${escapeHtml(r.tugasan || '-')}" ${escapeHtml(formatTarikh(r.tarikh))}${r.kawasanHint ? ` [No File: ${escapeHtml(r.idFile)} ${escapeHtml(r.kawasanHint)}]` : ''}: ${escapeHtml(r.reason)}`).join('<br>')}${um.length > 5 ? `<br>+${um.length - 5} lagi` : ''}</p>
+                            <p class="meta">Pastikan "Tugasan / Output" sama dengan Tugas dalam target. Jika tugas sama ada di beberapa kawasan, tulis No File sebagai "MCP 001/26 Kawasan".</p>
+                        </div>` : '';
+
+                const surveyorDisplay = grp.surveyorsArr.length > 0
+                    ? grp.surveyorsArr.map(s => `<span class="person"><i data-lucide="user-check" class="i12"></i>${escapeHtml(s)}</span>`).join('')
+                    : `<span class="muted sm"><em>Tiada nama surveyor</em></span>`;
+
+                const kategoriDisplay = grp.categoriesArr.length > 0
+                    ? grp.categoriesArr.map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('')
+                    : `<span class="tag mute">Umum</span>`;
+
+                const qtySummary = Object.entries(grp.quantitiesByUnit)
+                    .map(([u, val]) => `<span class="qty">${val} <b>${escapeHtml(u)}</b></span>`)
+                    .join('');
+
+                // Senarai kerja (setiap baris Tambah Kerja) dengan butang Edit
+                const kerjaListHtml = grp.rekodEntries.map(r => {
+                    const meta = [
+                        r.kawasan ? escapeHtml(r.kawasan) : '<span class="warn-t">Tiada kawasan</span>',
+                        escapeHtml([...new Set(splitMultiValues(r.kategori))].join(', ') || 'Umum'),
+                        r.kuantiti > 0 ? `${r.kuantiti} ${escapeHtml(r.unit || 'Unit')}` : '',
+                        r.jangkaSiap ? `Siap ${escapeHtml(formatTarikh(r.jangkaSiap))}` : ''
+                    ].filter(Boolean).join(' · ');
+                    const canEdit = /^[A-Za-z0-9-]{6,64}$/.test(r.id || '');
+                    const btn = canEdit
+                        ? `<button type="button" class="mini" data-id="${escapeHtml(r.id)}" onclick="openEditKerja(this.dataset.id)" aria-label="Edit kerja ${escapeHtml(r.tugas || '')}"><i data-lucide="pencil" class="i12"></i>Edit</button>`
+                        : `<span class="mini dashed" title="Rekod belum ada ID. Jalankan setup() dalam Apps Script Progres, atau tunggu CSV dikemas kini.">Tiada ID</span>`;
+                    return `
+                        <li>
+                            <div class="min">
+                                <p class="t">${escapeHtml(r.tugas || 'Tanpa tugas')}</p>
+                                <p class="m">${meta}</p>
+                            </div>
+                            ${btn}
+                        </li>`;
+                }).join('');
+
+                const kawasanHtml = grp.kawasanList.map(kw => {
+                    const qty = Object.entries(kw.qty).map(([u, v]) => `${v} ${escapeHtml(u)}`).join(', ');
+                    const meta = [
+                        `${kw.tugasCount} tugas`,
+                        qty ? `Sasaran <b>${qty}</b>` : '',
+                        kw.jangka ? `Jangka siap <b>${escapeHtml(formatTarikh(kw.jangka))}</b>` : ''
+                    ].filter(Boolean).join(' · ');
+                    return `
+                        <div class="kw${kw.key ? '' : ' nokey'}">
+                            <div class="row" style="margin-bottom:0">
+                                <span class="kw-n"><i data-lucide="map-pin" class="i14"></i><span>${escapeHtml(kw.label)}</span></span>
+                            </div>
+                            <p class="meta">${meta}</p>
+                        </div>
+                    `;
+                }).join('');
+
+                const namedKw = grp.kawasanLabels.length;
+                const bil = grp.bilKawasan;
+                const kawasanHead = bil ? `Kawasan (${namedKw} / ${bil} direkod)` : `Kawasan (${grp.kawasanList.length})`;
+                const kawasanNote = !bil ? ''
+                    : namedKw < bil ? `<p class="meta warn-t">${bil - namedKw} kawasan belum ada rekod kerja</p>`
+                    : namedKw > bil ? `<p class="meta warn-t">Kawasan direkod (${namedKw}) melebihi bilangan dirancang (${bil}). Semak semula.</p>`
+                    : '';
+
+                const subtitle = 'No. fail projek' + (grp.kawasanLabels.length > 1
+                    ? ` · ${grp.kawasanLabels.length} kawasan`
+                    : (grp.kawasanLabels.length === 1 ? ` · ${escapeHtml(grp.kawasanLabels[0])}` : ''));
+
+                return `
+                    <article class="fc${isLate ? ' late' : ''} ${grp.isNewlyAdded ? 'new-card-highlight' : ''}">
+                        <div class="fc-h">
+                            <div class="fc-ic"><i data-lucide="folder-kanban" class="i18"></i></div>
+                            <div class="fc-t">
+                                <h3 title="${escapeHtml(grp.idFile)}">${escapeHtml(grp.idFile)}</h3>
+                                <span>${subtitle}</span>
+                            </div>
+                            <span class="chip ${st[1]}">${st[0]}</span>
+                        </div>
+
+                        <div>
+                            <div class="big"><b>${grp.hasAnyTarget ? pct + '%' : '–'}</b><span>${grp.hasAnyTarget ? 'progres keseluruhan' : 'tiada Kuantiti target untuk dikira'}</span></div>
+                            <div class="bar lg"><i style="width:${pct}%;background:${barCol}"></i></div>
+                        </div>
+
+                        <div class="tags">${kategoriDisplay}</div>
+
+                        <div>
+                            <div class="lbl">Surveyor bertugas</div>
+                            <div class="people">${surveyorDisplay}</div>
+                        </div>
+
+                        <div class="box">
+                            <div class="row">
+                                <span class="task"><i data-lucide="briefcase" class="i14"></i><span>${escapeHtml(grp.latestTask)}</span></span>
+                                <span class="muted sm" style="flex:none">${grp.rekodEntries.length} tugas</span>
+                            </div>
+                            ${qtySummary ? `<div class="tags">${qtySummary}</div>` : ''}
+                            ${kerjaListHtml ? `
+                            <details class="kl">
+                                <summary><i data-lucide="chevron-right" class="i14 chev"></i>Senarai kerja &amp; edit (${grp.rekodEntries.length})</summary>
+                                <ul>${kerjaListHtml}</ul>
+                            </details>` : ''}
+                        </div>
+
+                        <div>
+                            <div class="lbl">Progres tugas (${grp.taskProgress.length})</div>
+                            <div class="kws"><div class="kw"><div class="cats" style="margin-top:0;padding-top:0;border-top:0">${taskBarsHtml || '<span class="muted sm">Tiada tugas target untuk fail ini</span>'}</div></div>${unmatchedHtml}</div>
+                        </div>
+
+                        <div>
+                            <div class="lbl">${kawasanHead}</div>
+                            <div class="kws">${kawasanHtml}</div>
+                            ${kawasanNote}
+                        </div>
+
+                        <div class="fc-f">
+                            <span><i data-lucide="calendar" class="i14"></i>Mula <b>${escapeHtml(formatTarikh(grp.tarikhMula))}</b></span>
+                            <span><i data-lucide="flag" class="i14"></i>Siap <b>${escapeHtml(formatTarikh(grp.jangkaSiap))}</b>${dueTxt}</span>
+                            <span><i data-lucide="clipboard-check" class="i14"></i>${grp.laporanCount ? `${grp.laporanCount} laporan · terakhir <b>${escapeHtml(formatTarikh(grp.lastReport))}</b>` : 'Belum ada laporan harian'}</span>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            refreshIcons();
+        }
+
+        function renderRawTables() {
+            const renderTable = (rows, containerId) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                if (!rows || rows.length === 0) {
+                    container.innerHTML = `<div class="empty">Tiada data dijumpai dalam pautan CSV ini.</div>`;
+                    return;
+                }
+                // Lajur ID (UUID) hanya untuk butang Edit; masih dibaca parser, cuma tak dipaparkan
+                const HIDDEN_HEADERS = ['id', 'id rekod'];
+                const headers = (rows[0].__headers || Object.keys(rows[0]).filter(k => !k.startsWith('__')))
+                    .filter(h => !HIDDEN_HEADERS.includes(String(h).trim().toLowerCase().replace(/\s+/g, ' ')));
+                let html = `<table><thead><tr>`;
+                headers.forEach(h => {
+                    html += `<th>${escapeHtml(h)}</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+                rows.forEach(r => {
+                    html += `<tr>`;
+                    headers.forEach(h => {
+                        html += `<td>${escapeHtml(r[h] || '-')}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            };
+
+            renderTable(rawLaporanRows, 'statsTableContainer');
+            if (!TARGET_DARI_REKOD) renderTable(rawTargetRows, 'targetTableContainer');
+            renderTable(rawRekodRows, 'recordsTableContainer');
+        }
+
+        // POST ke Apps Script dan baca respons JSON {status, message, row}.
+        // text/plain = "simple request", jadi tiada CORS preflight; Apps Script pulangkan header CORS sendiri.
+        async function postToAppsScript(payload) {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload),
+                redirect: 'follow'
+            });
+            if (!res.ok) {
+                const err = new Error(`HTTP ${res.status}`);
+                err.userMessage = `Pelayan membalas ralat (HTTP ${res.status}).`;
+                throw err;
+            }
+            const text = await res.text();
+            try {
+                const json = JSON.parse(text);
+                if (json.status !== 'ok') console.error('[Apps Script] respons:', json);
+                return json;
+            } catch (e) {
+                // Biasanya halaman HTML: deployment lama/tiada akses "Anyone", atau ralat skrip
+                const snippet = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+                console.error('[Apps Script] respons bukan JSON:', text.slice(0, 2000));
+                const err = new Error('Respons bukan JSON');
+                err.userMessage = `Respons pelayan tidak sah (${snippet || 'kosong'}). Semak deployment Apps Script: akses "Anyone" dan versi terbaru.`;
+                throw err;
+            }
+        }
+
+        // ---------- Edit kerja ----------
+        function setFormMode(mode) {
+            const isEdit = mode === 'edit';
+            const title = document.getElementById('formTitle');
+            const sub = document.getElementById('formSubtitle');
+            const banner = document.getElementById('editBanner');
+            const cancel = document.getElementById('cancelBtn');
+            const submit = document.getElementById('submitBtn');
+            if (title) title.innerText = isEdit ? 'Edit Kerja Lapangan' : 'Borang Tambah Kerja Lapangan';
+            if (sub) sub.innerText = isEdit
+                ? 'Perubahan disimpan terus pada baris asal dalam Google Sheets.'
+                : 'Data dihantar ke Google Sheets melalui Apps Script dan menjana kad progres secara automatik';
+            if (banner) banner.classList.toggle('hidden', !isEdit);
+            // Bilangan kawasan ialah maklumat peringkat fail, hanya untuk tambah kerja baru.
+            // Medan tersorok mesti tak "required", kalau tak browser sekat submit (not focusable).
+            document.getElementById('fieldWorkForm')?.classList.toggle('is-edit', isEdit);
+            const bilEl = document.getElementById('bilanganKawasan');
+            if (bilEl) bilEl.required = !isEdit;
+            if (cancel) cancel.innerText = isEdit ? 'Batal Edit' : 'Batal';
+            if (submit && !submit.disabled) {
+                submit.innerHTML = isEdit
+                    ? `<i data-lucide="save" class="i16"></i> <span>Simpan Perubahan</span>`
+                    : `<i data-lucide="send" class="i16"></i> <span>Simpan & Jana Kad Progres</span>`;
+            }
+            refreshIcons();
+        }
+
+        function resetFieldWorkForm() {
+            document.getElementById('fieldWorkForm').reset();
+            delete document.getElementById('bilanganKawasan').dataset.auto;
+            document.getElementById('tarikh').value = todayLocalIso();
+            document.getElementById('jangkaSiap').value = todayLocalIso();
+            selectedKategoriList = [];
+            selectedSurveyorList = [];
+            kawasanRows = [];
+            renderKawasanRows();
+            tugasanList = [];
+            renderTugasanList();
+            renderDropdownMenus(DEFAULT_KATEGORI, DEFAULT_SURVEYORS);
+            syncMultiSelectLabels();
+        }
+
+        function exitEditMode() {
+            editingRecord = null;
+            resetFieldWorkForm();
+            setFormMode('add');
+        }
+
+        function openEditKerja(id) {
+            const rec = window.__rekodById && window.__rekodById.get(id);
+            if (!rec) {
+                showToast('Rekod tidak dijumpai. Tekan Muat Semula dan cuba lagi.', 'error');
+                return;
+            }
+            switchTab('tambah', true);
+            editingRecord = { id: rec.id, updatedAt: rec.updatedAt || '' };
+            resetFieldWorkForm();
+
+            document.getElementById('idFile').value = rec.idFile || '';
+            document.getElementById('tarikh').value = tarikhToIso(rec.tarikh) || '';
+            document.getElementById('jangkaSiap').value = tarikhToIso(rec.jangkaSiap) || '';
+            // Mod edit: satu rekod = satu tugasan, diedit terus dalam kotak input
+            document.getElementById('tugasInput').value = rec.tugas || '';
+            // Mod edit = satu rekod = satu blok kawasan sahaja
+            const unitOpt = matchUnit(rec.unit);
+            kawasanRows = [{ ...blankKawasanRow(unitOpt), kawasan: rec.kawasan || '', kuantiti: rec.kuantiti > 0 ? String(rec.kuantiti) : '' }];
+            renderKawasanRows();
+
+            // Hanya pilihan rasmi boleh dipilih; nilai lama yang tiada dalam senarai dimaklumkan
+            const pick = (raw, options, mapFn) => {
+                const chosen = [], unknown = [];
+                splitMultiValues(raw).forEach(v => {
+                    const val = mapFn ? mapFn(v) : v;
+                    const hit = options.find(o => o.toLowerCase() === String(val).toLowerCase());
+                    if (hit) { if (!chosen.includes(hit)) chosen.push(hit); } else unknown.push(v);
+                });
+                return { chosen, unknown };
+            };
+            const kat = pick(rec.kategori, DEFAULT_KATEGORI, canonicalKategori);
+            const surv = pick(rec.surveyor, DEFAULT_SURVEYORS);
+            selectedKategoriList = kat.chosen;
+            selectedSurveyorList = surv.chosen;
+            renderDropdownMenus(DEFAULT_KATEGORI, DEFAULT_SURVEYORS);
+            syncMultiSelectLabels();
+            updateKawasanSuggestions();
+
+            const bannerText = document.getElementById('editBannerText');
+            if (bannerText) {
+                bannerText.innerText = `Mengedit: ${rec.idFile || '-'} · ${rec.kawasan || 'tiada kawasan'} · ${rec.tugas || '-'}.`
+                    + (kat.unknown.length || surv.unknown.length || !unitOpt
+                        ? ` Sila pilih semula: ${[...kat.unknown, ...surv.unknown, ...(!unitOpt && rec.unit ? [rec.unit] : [])].join(', ') || 'Unit'} (tiada dalam senarai).`
+                        : '');
+            }
+            setFormMode('edit');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function submitForm(e) {
+            e.preventDefault();
+            const submitBtnGuard = document.getElementById('submitBtn');
+            if (submitBtnGuard && submitBtnGuard.disabled) return;
+
+            if (selectedKategoriList.length === 0) {
+                showModal('Pilih Kategori', 'Sila pilih sekurang-kurangnya satu Kategori Kerja.', 'error');
+                return;
+            }
+            if (selectedSurveyorList.length === 0) {
+                showModal('Pilih Surveyor', 'Sila pilih sekurang-kurangnya seorang Surveyor.', 'error');
+                return;
+            }
+
+            const fileParts = splitFileAndKawasan(document.getElementById('idFile').value);
+            if (!fileParts.file) {
+                showModal('No File Kosong', 'Sila isi No File.', 'error');
+                return;
+            }
+            if (!new RegExp('^' + FILE_PREFIX + ' \\d+/\\d+$').test(fileParts.file)) {
+                showModal('Format No File', `No File mesti dalam format ${FILE_PREFIX} 001/26.`, 'error');
+                return;
+            }
+
+            const isEdit = Boolean(editingRecord);
+            const bilanganKawasan = Number(document.getElementById('bilanganKawasan').value);
+            // Mod edit tiada medan Bilangan kawasan: tak divalidasi & tak dihantar (Apps Script kekalkan nilai asal)
+            if (!isEdit && (!Number.isInteger(bilanganKawasan) || bilanganKawasan < 1 || bilanganKawasan > MAX_KAWASAN)) {
+                showModal('Bilangan Kawasan', `Bilangan kawasan mesti nombor bulat antara 1 hingga ${MAX_KAWASAN}.`, 'error');
+                return;
+            }
+            if (!isEdit && kawasanRows.length !== bilanganKawasan) setKawasanRowCount(bilanganKawasan);
+
+            // Blok kawasan yang tak dilangkau = rekod yang akan dihantar
+            const items = kawasanRows.filter(r => !r.skip).map(r => ({
+                kawasan: kawasanLabel(r.kawasan),
+                kuantitiRaw: String(r.kuantiti ?? '').trim(),
+                unit: r.unit
+            }));
+            if (!items.length) {
+                showModal('Kawasan Kosong', 'Sekurang-kurangnya satu kawasan mesti diisi.', 'error');
+                return;
+            }
+
+            // Kawasan ditaip dalam No File ("MCP 001/26 Bangi"): hanya dibenarkan bila satu kawasan sahaja
+            if (fileParts.kawasan) {
+                const only = items.length === 1 ? items[0] : null;
+                if (!only || (only.kawasan && kawasanKey(only.kawasan) !== kawasanKey(fileParts.kawasan))) {
+                    showModal('Kawasan Bercanggah', 'Kawasan ditulis dalam No File. Buang nama kawasan dari No File dan isi dalam blok Kawasan lapangan.', 'error');
+                    return;
+                }
+                only.kawasan = only.kawasan || fileParts.kawasan;
+            }
+
+            const seen = new Set();
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                const no = isEdit ? '' : ` ${kawasanRows.indexOf(kawasanRows.filter(r => !r.skip)[i]) + 1}`;
+                if (!it.kawasan) { showModal('Kawasan Kosong', `Sila isi nama Kawasan${no}.`, 'error'); return; }
+                const k = kawasanKey(it.kawasan);
+                if (seen.has(k)) { showModal('Kawasan Berulang', `Kawasan "${it.kawasan}" ditulis lebih sekali. Setiap blok mesti kawasan berbeza.`, 'error'); return; }
+                seen.add(k);
+                const q = Number(it.kuantitiRaw);
+                if (it.kuantitiRaw === '' || !isFinite(q) || q < 0) { showModal('Kuantiti', `Kuantiti untuk ${it.kawasan} mesti nombor 0 atau lebih.`, 'error'); return; }
+                it.kuantiti = q;
+                delete it.kuantitiRaw;
+                if (!UNIT_OPTIONS.includes(it.unit)) { showModal('Unit', `Sila pilih Unit untuk ${it.kawasan}.`, 'error'); return; }
+            }
+
+            // Bilangan tak boleh kurang daripada kawasan berbeza fail ini (rekod sedia ada + yang dihantar).
+            // Mod edit: abaikan rekod yang sedang diedit, sebab kawasannya mungkin sedang ditukar.
+            const fNormSubmit = normalizeFileId(fileParts.file);
+            const kwKeys = new Set(seen);
+            (window.__processedData?.combinedRecords || []).forEach(r => {
+                if (editingRecord && r.id && r.id === editingRecord.id) return;
+                const k = kawasanKey(r.kawasan);
+                if (k && r.idFile && normalizeFileId(r.idFile) === fNormSubmit) kwKeys.add(k);
+            });
+            // Mod edit: tiada medan bilangan, jadi tukar kawasan tak boleh buat fail melebihi bilangan dirancang
+            const plannedBil = window.__processedData?.bilKawasanByFile?.[fNormSubmit]?.n || 0;
+            if (isEdit && plannedBil && kwKeys.size > plannedBil) {
+                showModal('Kawasan Melebihi Bilangan', `Fail ${fileParts.file} dirancang ${plannedBil} kawasan. Menukar kawasan ke "${items[0].kawasan}" akan jadikan ${kwKeys.size} kawasan. Untuk tambah kawasan baru, guna Tambah Kerja dan naikkan Bilangan kawasan.`, 'error');
+                return;
+            }
+            if (!isEdit && bilanganKawasan < kwKeys.size) {
+                showModal('Bilangan Kawasan', `Fail ${fileParts.file} akan ada ${kwKeys.size} kawasan berbeza (rekod sedia ada + yang ini). Bilangan kawasan tak boleh kurang daripada ${kwKeys.size}.`, 'error');
+                return;
+            }
+
+            // Tugasan: mod tambah guna senarai (teks yang belum ditekan Tambah turut diambil); mod edit satu tugasan
+            const tugasInputVal = document.getElementById('tugasInput').value.trim().replace(/\s+/g, ' ');
+            let tugasan;
+            if (isEdit) {
+                tugasan = [tugasInputVal];
+            } else {
+                if (tugasInputVal && !tugasanList.some(t => normText(t) === normText(tugasInputVal))) {
+                    tugasanList.push(tugasInputVal);
+                    document.getElementById('tugasInput').value = '';
+                    renderTugasanList();
+                }
+                tugasan = tugasanList.slice();
+            }
+            if (!tugasan.length || !tugasan[0]) {
+                showModal('Tugasan Kosong', 'Sila tambah sekurang-kurangnya satu tugasan.', 'error');
+                return;
+            }
+            const jumlahBaris = items.length * tugasan.length;
+            if (!isEdit && jumlahBaris > MAX_BARIS_SEKALI) {
+                showModal('Terlalu Banyak Rekod', `${items.length} kawasan × ${tugasan.length} tugasan = ${jumlahBaris} rekod. Maksimum ${MAX_BARIS_SEKALI} rekod sekali hantar. Hantar dalam beberapa kali.`, 'error');
+                return;
+            }
+            // Setiap kawasan × setiap tugasan = satu rekod. Kuantiti & unit ikut kawasan.
+            const rekodItems = isEdit
+                ? [{ ...items[0], tugas: tugasan[0] }]
+                : items.flatMap(it => tugasan.map(t => ({ ...it, tugas: t })));
+
+            const tarikhVal = document.getElementById('tarikh').value;
+            const jangkaVal = document.getElementById('jangkaSiap').value;
+            if (tarikhVal && jangkaVal && jangkaVal < tarikhVal) {
+                showModal('Tarikh Jangka Siap', 'Tarikh jangka siap tak boleh lebih awal daripada tarikh kerja.', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spin sm"></span> <span>Menghantar...</span>`;
+
+            // Medan sepunya untuk semua kawasan
+            const common = {
+                idFile: fileParts.file,
+                ...(isEdit ? {} : { bilanganKawasan }),
+                tarikh: tarikhVal,
+                surveyor: selectedSurveyorList.join(', '),
+                kategori: selectedKategoriList.join(', '),
+                jangkaSiap: jangkaVal
+            };
+            const payload = isEdit
+                ? { ...common, ...rekodItems[0], action: 'update', id: editingRecord.id, updatedAt: editingRecord.updatedAt }
+                : { ...common, action: 'addMany', items: rekodItems };
+
+            try {
+                const result = await postToAppsScript(payload);
+                if (result.status === 'duplicate') {
+                    showModal('Rekod Sudah Wujud', result.message || (isEdit ? 'Kerja lain dengan maklumat yang sama sudah ada. Perubahan tidak disimpan.' : 'Kerja yang sama sudah ada dalam sheet. Tiada rekod baru disimpan.'), 'error');
+                    return;
+                }
+                if (result.status === 'conflict') {
+                    showModal('Rekod Telah Berubah', result.message || 'Rekod ini telah diubah oleh orang lain. Muat semula dan cuba lagi.', 'error');
+                    return;
+                }
+                if (result.status !== 'ok') {
+                    showModal('Gagal Disimpan', result.message || `Rekod gagal disimpan. Respons pelayan: ${JSON.stringify(result).slice(0, 160)}`, 'error');
+                    return;
+                }
+
+                lastAddedFileId = common.idFile;
+                let savedRows = [];
+                if (isEdit) {
+                    // Bilangan kawasan ikut fail sasaran (Apps Script buat perkara yang sama)
+                    const saved = { ...common, ...rekodItems[0], bilanganKawasan: plannedBil, id: result.id || editingRecord.id, updatedAt: result.updatedAt || '', isNewlyAdded: true, sourceType: 'rekod' };
+                    localEdits.set(saved.id, saved);
+                    savedRows = [result.row];
+                } else {
+                    // Respons addMany: records[i] sepadan dengan items[i]
+                    const recs = Array.isArray(result.records) ? result.records : [];
+                    // Masuk ke depan senarai dalam susunan asal (kawasan 1 tugasan 1 dahulu)
+                    const baru = rekodItems.map((it, i) => {
+                        const r = recs[i] || {};
+                        if (r.row) savedRows.push(r.row);
+                        return { ...common, ...it, id: r.id || '', updatedAt: r.updatedAt || '', isNewlyAdded: true, sourceType: 'rekod' };
+                    });
+                    localAddedRecords.unshift(...baru);
+                }
+
+                editingRecord = null;
+                resetFieldWorkForm();
+                setFormMode('add');
+                // Rekod DAH disimpan di sheet. Ralat paparan di sini tak boleh jatuh ke catch di bawah
+                // (yang tunjuk "Ralat Hantaran"), nanti pengguna hantar semula & rekod jadi berganda.
+                try {
+                    syncDynamicOptionsAndRender();
+                } catch (renderErr) {
+                    console.error('Rekod disimpan tetapi gagal memaparkan semula:', renderErr);
+                }
+                switchTab('dashboard');
+
+                const rowTxt = savedRows.length > 1 ? `baris ${Math.min(...savedRows)}–${Math.max(...savedRows)}` : `baris ${savedRows[0] ?? '-'}`;
+                if (isEdit) {
+                    showModal('Kerja Dikemas Kini', `Perubahan untuk "${common.idFile}" (${items[0].kawasan}) disimpan pada ${rowTxt}.`, 'success');
+                } else {
+                    showModal('Kerja Berjaya Ditambah', `Fail "${common.idFile}": ${items.length} kawasan (${items.map(i => i.kawasan).join(', ')}) × ${tugasan.length} tugasan = ${rekodItems.length} rekod disimpan dalam sheet (${rowTxt}).`, 'success');
+                }
+
+                setTimeout(() => { refreshAllData(); }, 2500);
+            } catch (error) {
+                console.error("Ralat menghantar borang:", error);
+                showModal('Ralat Hantaran', error.userMessage || 'Gagal menghubungi pelayan Google Apps Script. Sila cuba lagi.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                setFormMode(editingRecord ? 'edit' : 'add');
+            }
+        }
+
+        // Notifikasi gaya toast (sama seperti Dashboard Laporan Harian)
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+            const toastIcon = document.getElementById("toastIcon");
+            if (!toast || !toastMsg || !toastIcon) return;
+
+            toastMsg.innerText = msg;
+            const kind = type === 'success' ? 'ok' : type === 'error' ? 'bad' : 'info';
+            const iconName = kind === 'ok' ? 'check-circle' : kind === 'bad' ? 'alert-circle' : 'info';
+            toastIcon.innerHTML = `<i data-lucide="${iconName}" class="i18"></i>`;
+            toast.className = 'toast ' + kind;          // buang 'hidden', kekal tersembunyi (opacity 0)
+            void toast.offsetWidth;                     // paksa reflow supaya transisi masuk berjalan
+            toast.classList.add('on');
+            refreshIcons();
+
+            // Mesej berturut-turut tak dipotong oleh pemasa toast sebelumnya
+            clearTimeout(toastTimer);
+            clearTimeout(toastHideTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('on');
+                toastHideTimer = setTimeout(() => toast.classList.add('hidden'), 250);
+            }, 3500);
+        }
+
+        // Kekalkan nama fungsi asal supaya panggilan sedia ada tak berubah
+        function showModal(title, message, type) {
+            showToast(`${title} — ${message}`, type === 'success' ? 'success' : 'error');
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+
+<script>
+/* JM MOBILE — isi data-label setiap sel jadual daripada header (sokong rowspan/colspan).
+   Tak sentuh data atau logic; jalan semula bila jadual dirender semula. */
+(function(){
+  'use strict';
+  function txt(el){ return el.textContent.replace(/[▲▼⇅]/g,'').replace(/\s+/g,' ').trim(); }
+  function headLabels(table){
+    const rows = table.tHead ? Array.from(table.tHead.rows) : [];
+    if (!rows.length) return null;
+    const grid = [];
+    rows.forEach(function(tr, r){
+      grid[r] = grid[r] || [];
+      let c = 0;
+      Array.from(tr.cells).forEach(function(cell){
+        while (grid[r][c]) c++;
+        const cs = cell.colSpan || 1, rs = cell.rowSpan || 1, t = txt(cell);
+        for (let i = 0; i < rs; i++) { grid[r+i] = grid[r+i] || []; for (let j = 0; j < cs; j++) grid[r+i][c+j] = { t: t }; }
+        c += cs;
+      });
+    });
+    const n = Math.max.apply(null, grid.map(function(g){ return g.length; }));
+    const out = [];
+    for (let c = 0; c < n; c++) {
+      const parts = [];
+      grid.forEach(function(g){ const x = g[c]; if (x && x.t && parts[parts.length-1] !== x.t) parts.push(x.t); });
+      out.push(parts.join(' · '));
+    }
+    return out;
+  }
+  function label(table){
+    const labels = headLabels(table);
+    if (!labels) return;
+    table.classList.add('jm-cards');
+    const n = labels.length;
+    Array.from(table.tBodies).forEach(function(tb){
+      const occ = [];
+      Array.from(tb.rows).forEach(function(tr, r){
+        occ[r] = occ[r] || [];
+        let c = 0;
+        Array.from(tr.cells).forEach(function(cell){
+          while (occ[r][c]) c++;
+          const cs = cell.colSpan || 1, rs = cell.rowSpan || 1;
+          for (let i = 0; i < rs; i++) { occ[r+i] = occ[r+i] || []; for (let j = 0; j < cs; j++) occ[r+i][c+j] = 1; }
+          const full = cs > 1 && cs >= Math.ceil(n / 2);
+          cell.classList.toggle('jm-full', full);
+          const lab = full ? '' : (labels[c] || '');
+          if (cell.getAttribute('data-label') !== lab) cell.setAttribute('data-label', lab);
+          cell.classList.toggle('jm-nolabel', !full && !lab);
+          c += cs;
+        });
+      });
+    });
+  }
+  let queued = false;
+  function run(){ queued = false; document.querySelectorAll('table').forEach(label); }
+  function schedule(){ if (!queued) { queued = true; requestAnimationFrame(run); } }
+  function start(){
+    run();
+    new MutationObserver(function(muts){
+      for (const m of muts) { if (m.type === 'childList') { schedule(); return; } }
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+</body>
+</html>

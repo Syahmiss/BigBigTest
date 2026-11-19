@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEO-BIM Tracker · Scan to BIM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<style>
+/* ============================================================
+   GEO-BIM Tracker — UI ikut template JMC Operations Hub
+   (GEO-STAT: light, indigo + kuning). Tiada sidebar sendiri:
+   bila dibuka dalam hub, sidebar hub jadi "rail".
+   ============================================================ */
+:root{
+  --ind-950:#0A2540; --ind-900:#0F2E55; --ind-800:#1E40AF; --ind-600:#1D4ED8; --ind-500:#3B82F6; --ind-100:#DBEAFE; --ind-50:#EFF6FF;
+  --yel:#FACC15; --yel-600:#EAB308; --yel-50:#FEFCE8; --yel-ink:#0A2540;
+  --bg:#F8FAFC; --surface:#FFFFFF; --line:#E2E8F0; --line2:#F1F5F9;
+  --ink:#1E293B; --ink2:#475569; --muted:#64748B;
+  --ok:#047857; --ok-50:#ECFDF5; --warn:#A16207; --warn-50:#FEF9C3; --bad:#DC2626; --bad-50:#FEE2E2;
+  --f:'Inter','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+  --r-lg:16px; --r-md:12px; --r-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);font-stretch:100%;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select{font-family:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
+[hidden]{display:none!important}
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Tab bar ---------- */
+.tabbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.tabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--line);overflow-x:auto;max-width:100%}
+.tabs button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap;transition:background .15s,color .15s}
+.tabs button:hover{background:var(--ind-50);color:var(--ind-600)}
+.tabs button.on{background:var(--ind-950);color:#fff;box-shadow:0 6px 16px -8px rgba(23,21,74,.6)}
+.tabs button.on svg{color:var(--yel)}
+.tabs button:focus-visible{outline:2px solid var(--yel)}
+.sp{flex:1}
+
+/* ---------- Butang ---------- */
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:9px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;text-decoration:none;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--ind-600);color:var(--ind-600)}
+.btn.p{background:var(--ind-600);border-color:var(--ind-600);color:#fff}
+.btn.p:hover{background:var(--ind-800);border-color:var(--ind-800);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.ok:hover{filter:brightness(.92);color:#fff}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.danger:hover{filter:brightness(.92);color:#fff}
+.link{all:unset;cursor:pointer;font-size:12px;font-weight:650;color:var(--ind-600);padding:4px 8px;border-radius:7px;display:inline-flex;align-items:center;gap:5px}
+.link:hover{background:var(--ind-50)}
+.link:focus-visible{outline:2px solid var(--ind-600)}
+.ico{all:unset;cursor:pointer;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:var(--muted)}
+.ico:hover{background:var(--bad-50);color:var(--bad)}
+.ico:focus-visible{outline:2px solid var(--ind-600)}
+
+/* ---------- Layout ---------- */
+.wrap{max-width:1480px;margin:0 auto;padding:22px 26px 44px}
+.grid{display:grid;gap:16px;margin-bottom:16px}
+.g21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.g11{grid-template-columns:repeat(2,minmax(0,1fr))}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;min-width:0;margin-bottom:16px}
+.grid>.panel{margin-bottom:0}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ph h3{font-size:14.5px;font-weight:700;font-stretch:106%;display:flex;align-items:center;gap:9px}
+.ph h3::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--yel)}
+.ph p{font-size:12px;color:var(--muted);flex-basis:100%;margin-top:-6px;padding-left:13px}
+.ph .src{font-size:11.5px;color:var(--muted);padding:2px 8px;border-radius:6px;background:var(--bg)}
+.empty{padding:24px 10px;text-align:center;color:var(--muted);font-size:12.5px}
+
+/* ---------- Hero + KPI ---------- */
+.hero{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
+.hero .contour{position:absolute;right:-40px;top:-60px;width:520px;height:300px;pointer-events:none;color:var(--ind-600);opacity:.13}
+.hero-head{position:relative;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:20px 24px 18px}
+.hero-head h2{font-size:26px;font-weight:780;font-stretch:118%;letter-spacing:-.4px;line-height:1.1;color:var(--ind-950)}
+.hero-head p{font-size:12.5px;color:var(--muted);margin-top:5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.kpis{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:1px solid var(--line);background:linear-gradient(var(--surface),var(--bg))}
+.kpi{all:unset;box-sizing:border-box;cursor:pointer;display:block;padding:15px 18px 16px;border-left:1px solid var(--line);min-width:0;position:relative;transition:background .15s}
+.kpi:first-child{border-left:0}
+.kpi:hover{background:var(--ind-50)}
+.kpi.sel{background:var(--ind-50);box-shadow:inset 0 -3px 0 var(--ind-600)}
+.kpi:focus-visible{outline:2px solid var(--ind-600);outline-offset:-2px}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px}
+.kpi .l i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.kpi .v{font-size:27px;font-weight:720;font-stretch:112%;margin-top:4px;letter-spacing:-.6px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink);line-height:1.15}
+.kpi .s{font-size:11.5px;color:var(--ink2);margin-top:6px}
+.kpi.hl .v{display:inline-block;background:linear-gradient(transparent 66%,var(--yel) 66%,var(--yel) 92%,transparent 92%)}
+
+/* ---------- Chip ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:650;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--ok-50);color:var(--ok)}.chip.warn{background:var(--warn-50);color:var(--warn)}.chip.bad{background:var(--bad-50);color:var(--bad)}
+.chip.info{background:var(--ind-50);color:var(--ind-600)}.chip.mute{background:var(--line2);color:var(--ink2)}
+.chip.dr{background:var(--ind-100);color:var(--ind-800)}.chip.yel{background:var(--yel-50);color:#8a6a00}
+
+/* ---------- Jadual ---------- */
+.tw{overflow-x:auto;margin:0 -6px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+th{font-size:11.5px;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tbody tr:hover td{background:#fafaff}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td .t{font-weight:600;color:var(--ink)}
+td .m{font-size:11.5px;color:var(--muted)}
+td .ref{font-variant-numeric:tabular-nums;font-weight:650;color:var(--ind-600);white-space:nowrap}
+.clip{max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{display:flex;align-items:center;gap:8px;min-width:120px}
+.prog .bar{flex:1;height:7px;background:var(--line2);border-radius:4px;overflow:hidden}
+.prog .bar i{display:block;height:100%;border-radius:4px}
+.prog b{font-size:11.5px;font-weight:650;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- Bar mendatar + stat ---------- */
+.hb{display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) auto;gap:12px;align-items:center;padding:6px 0;font-size:12.5px}
+.hb .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2)}
+.hb .track{height:14px;border-radius:5px;overflow:hidden;background:var(--line2)}
+.hb .track span{display:block;height:100%;border-radius:5px}
+.hb .val{font-variant-numeric:tabular-nums;font-weight:650;min-width:28px;text-align:right}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--bg);border-radius:var(--r-md);padding:11px 13px}
+.stat .l{font-size:11.5px;color:var(--muted)}
+.stat .v{font-size:20px;font-weight:720;font-stretch:110%;font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* ---------- Staff ---------- */
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:300px;overflow:auto}
+.person{display:flex;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line2);border-radius:10px;min-width:0}
+.av{width:32px;height:32px;border-radius:50%;background:var(--ind-950);color:var(--yel);display:grid;place-items:center;font-size:11px;font-weight:750;flex:none}
+.person>div:not(.av){min-width:0;flex:1}
+.person b{display:block;font-size:12.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.person span{font-size:11px;color:var(--muted)}
+
+/* ---------- Borang ---------- */
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px}
+.f label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:5px}
+.f .req{color:var(--bad)}
+.f small{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+.s2{grid-column:span 2}.s3{grid-column:1/-1}
+.inp{width:100%;font-size:13px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.inp:focus{outline:none;border-color:var(--ind-600);box-shadow:0 0 0 3px var(--ind-50)}
+.inp.sm{width:auto;padding:6px 10px;font-size:12px}
+input[type=file].inp{padding:6px}
+input[type=file].inp::file-selector-button{border:0;background:var(--ind-600);color:#fff;font:inherit;font-size:12px;font-weight:600;padding:6px 10px;border-radius:7px;margin-right:10px;cursor:pointer}
+.factions{display:flex;justify-content:flex-end;gap:8px;padding-top:4px}
+.pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-height:150px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.pick label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);cursor:pointer;min-width:0}
+.pick label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+input[type=checkbox]{accent-color:var(--ind-600);width:15px;height:15px;flex:none}
+
+/* ---------- Checklist ---------- */
+.score{background:var(--bg);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.score .lbl{flex:1;min-width:220px}
+.score .row{display:flex;justify-content:space-between;font-size:12.5px;font-weight:650;margin-bottom:7px;gap:10px}
+.score .row b{color:var(--ind-600);font-variant-numeric:tabular-nums}
+.bigbar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bigbar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--ind-600),var(--ok));transition:width .4s ease}
+.cats{display:grid;gap:12px}
+.cat{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cat-h{display:flex;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line2)}
+.cat-h h4{font-size:13.5px;font-weight:700;font-stretch:106%;flex:1}
+.cat-h b{font-size:12px;color:var(--ind-600);font-variant-numeric:tabular-nums}
+.ck-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.ck{display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;align-items:start;padding:9px 10px;border:1px solid var(--line2);border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.ck:hover{background:var(--ind-50);border-color:var(--ind-100)}
+.ck:has(input:checked){background:var(--ind-50);border-color:var(--ind-100)}
+.ck input{margin-top:2px}
+.ck small{display:inline-block;font-size:10px;font-weight:650;color:var(--ink2);background:var(--line2);border-radius:5px;padding:0 6px;margin-bottom:3px}
+.ck:has(input:checked) small{background:var(--ind-100);color:var(--ind-800)}
+.ck p{font-size:12.5px;color:var(--ink)}
+.ckfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:16px;padding-top:14px;font-size:12px;color:var(--muted)}
+
+/* ---------- Modal + toast ---------- */
+.modal{position:fixed;inset:0;background:rgba(23,21,74,.5);display:none;place-items:center;z-index:110;padding:16px;overflow:auto}
+.modal.on{display:grid}
+.modal .box{background:var(--surface);border-radius:var(--r-lg);max-width:440px;width:100%;padding:22px 24px;border-top:4px solid var(--yel);box-shadow:0 24px 60px -20px rgba(23,21,74,.5)}
+.modal .box.lg{max-width:680px}
+.mh{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.mh h4{font-size:16px;font-weight:700;flex:1}
+.mh .ico:hover{background:var(--line2);color:var(--ink)}
+.modal p{font-size:13px;color:var(--ink2);margin-bottom:18px}
+.modal .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--ind-950);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;z-index:120;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;border-left:4px solid var(--yel);max-width:340px}
+.toast.on{opacity:1;transform:none}
+.toast.err{border-left-color:var(--bad)}
+
+/* ---------- Responsif ---------- */
+@media (max-width:1320px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi:nth-child(4){border-left:0}.kpi:nth-child(n+4){border-top:1px solid var(--line)}}
+@media (max-width:1100px){.g21,.g11{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){
+  .wrap{padding:16px 16px 32px}
+  .hero-head{padding:16px 16px 14px}.hero-head h2{font-size:22px}
+  .hero .contour{width:360px;right:-120px}
+  .form,.modal .form{grid-template-columns:minmax(0,1fr)}
+  .s2,.s3{grid-column:auto}
+  .ck-grid,.people{grid-template-columns:minmax(0,1fr)}
+  .pick{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{border-left:1px solid var(--line)!important;border-top:1px solid var(--line)}
+  .kpi:nth-child(odd){border-left:0!important}.kpi:nth-child(-n+2){border-top:0}
+  .kpi .v{font-size:22px}
+  .tabbar .btn span{display:none}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ============================================================
+   JM THEME LAYER — ikut template "Dashboard Jualan & Invois"
+   Navy #0A2540 · Royal #1D4ED8 · Gold #FACC15 · Inter · slate
+   Token di :root dah dipetakan; blok ni ubah rupa komponen.
+   ============================================================ */
+body{font-family:var(--f);background:var(--bg);color:var(--ink)}
+::selection{background:var(--yel);color:var(--ind-950)}
+:focus-visible{outline:2px solid var(--ind-600);outline-offset:2px}
+
+/* Panel / kad = bg-white rounded-2xl border-slate-200 shadow-sm */
+.panel,.fc,.pg,.item,.hero-head{box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.panel{border-radius:16px}
+.ph h3,.ph h2,.panel h2{color:var(--ind-950);font-weight:700;font-stretch:100%}
+.ph .src,.panel h2 small{background:var(--line2);color:var(--muted);font-weight:500;border-radius:8px}
+
+/* Butang */
+.btn{border-radius:12px;border-color:#CBD5E1;font-weight:600;transition:background .15s,border-color .15s,color .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn:hover{border-color:var(--ind-600);color:var(--ind-950);background:var(--ind-50)}
+.btn.p,.btn.primary{background:var(--ind-950);border-color:var(--ind-950);color:#fff}
+.btn.p:hover,.btn.primary:hover{background:var(--ind-800);border-color:var(--ind-800);color:#fff}
+.btn.y,.btn.back{background:var(--yel);border-color:var(--yel);color:var(--ind-950)}
+.btn.y:hover,.btn.back:hover{background:var(--yel-600);border-color:var(--yel-600);color:var(--ind-950)}
+
+/* Input = rounded-xl border-slate-300 focus:ring-2 ring-royal */
+.inp,.filters input,.filters select,.edit select,.edit input,.rn-form input{border-color:#CBD5E1;border-radius:12px}
+.inp:focus,.filters input:focus,.filters select:focus,.edit select:focus,.edit input:focus,.rn-form input:focus{outline:none;border-color:var(--ind-600);box-shadow:0 0 0 2px var(--ind-600)}
+.inp::placeholder,.filters input::placeholder{color:#94A3B8}
+
+/* Chip / pill = rounded-full */
+.chip,.pill{font-weight:600;padding:3px 10px}
+
+/* Jadual = thead navy, teks putih uppercase, hover biru lembut */
+table:not(.sheet) th{background:var(--ind-950);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:12px 14px;border-bottom:0}
+table:not(.sheet) thead tr th:first-child{border-top-left-radius:12px}
+table:not(.sheet) thead tr th:last-child{border-top-right-radius:12px}
+table:not(.sheet) td{padding:12px 14px;border-bottom:1px solid var(--line)}
+tbody tr:hover td{background:rgba(239,246,255,.6)}
+.sheet th{background:var(--ind-950);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+
+/* Hero → sub-header putih + kad KPI berasingan (gaya template) */
+.hero{background:none;border:0;border-radius:0;overflow:visible;display:flex;flex-direction:column;gap:20px}
+.hero .contour{display:none}
+.hero-head{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 20px;align-items:center}
+.hero-head h1,.hero-head h2{color:var(--ind-950);font-weight:800;font-stretch:100%;letter-spacing:-.3px;font-size:22px;display:flex;align-items:center;gap:12px}
+.hero-head h1::before,.hero-head h2::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--ind-800);box-shadow:0 0 0 4px var(--ind-100);flex:none}
+.eyebrow{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:600}
+.eyebrow::before{display:none}
+
+.hero .kpis{display:grid;gap:20px;border-top:0;background:none}
+.hero .kpi{background:var(--surface);border:1px solid var(--line)!important;border-top:4px solid var(--ind-600)!important;border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(15,23,42,.06);transition:box-shadow .15s,transform .15s;overflow:hidden}
+.hero .kpi:hover{background:var(--surface);box-shadow:0 6px 16px -6px rgba(15,23,42,.18)}
+.hero .kpi .l{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.hero .kpi .v{font-size:28px;font-weight:800;font-stretch:100%;color:var(--ind-950);letter-spacing:-.5px;margin-top:8px}
+.hero .kpi .s{color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--line2)}
+.hero .kpi.hl .v{background:none}
+.hero .kpi:nth-child(2){border-top-color:var(--ind-600)!important}
+.hero .kpi:nth-child(3){border-top-color:var(--yel)!important}
+.hero .kpi:nth-child(4){border-top-color:#334155!important}
+.hero .kpi:nth-child(5){border-top-color:var(--bad)!important}
+.hero .kpi:nth-child(6){border-top-color:var(--ok)!important}
+/* KPI pertama = kad navy → blue gradient dengan bulatan gold */
+.hero .kpi:first-child{position:relative;background:linear-gradient(135deg,var(--ind-950),var(--ind-800));border:1px solid #1E3A8A!important;color:#fff}
+.hero .kpi:first-child::after{content:"";position:absolute;right:-16px;top:-16px;width:96px;height:96px;border-radius:50%;background:rgba(250,204,21,.12);transition:transform .2s;pointer-events:none}
+.hero .kpi:first-child:hover{background:linear-gradient(135deg,var(--ind-950),var(--ind-800))}
+.hero .kpi:first-child:hover::after{transform:scale(1.1)}
+.hero .kpi:first-child .l{color:#BFDBFE}
+.hero .kpi:first-child .v{color:#fff}
+.hero .kpi:first-child .s{color:#DBEAFE;border-top-color:rgba(255,255,255,.15)}
+.hero .kpi:first-child .s b,.hero .kpi:first-child .s .chip{color:var(--yel)}
+.hero .kpi.sel{box-shadow:0 0 0 3px var(--ind-100)!important;background:var(--ind-50)}
+.hero .kpi:first-child.sel{box-shadow:0 0 0 3px var(--yel)!important;background:linear-gradient(135deg,var(--ind-950),var(--ind-800))}
+
+/* Toolbar tab = bar navy rounded-2xl, tab aktif gold */
+.jm-bar{background:var(--ind-950);border:0;border-radius:16px;padding:8px 12px;box-shadow:0 4px 10px -4px rgba(10,37,64,.4)}
+.jm-tab{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;color:#DBEAFE;white-space:nowrap;transition:background .15s,color .15s}
+.jm-tab:hover{background:rgba(255,255,255,.1);color:#fff}
+.jm-tab.on{background:var(--yel);color:var(--ind-950);font-weight:700;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+.jm-tab.on svg{color:var(--ind-950)}
+
+/* Toast = navy + garis gold */
+.toast{background:var(--ind-950);border-left:4px solid var(--yel);border-radius:12px}
+
+@media (max-width:640px){.hero .kpis{gap:12px}.hero .kpi .v{font-size:22px}}
+
+/* --- GEO-BIM: .tabbar jadi toolbar navy penuh (tab + butang database) --- */
+.tabbar{background:var(--ind-950);border-radius:16px;padding:8px 12px;box-shadow:0 4px 10px -4px rgba(10,37,64,.4)}
+.tabs{background:none;border:0;padding:0;gap:6px}
+.tabs button{padding:10px 16px;border-radius:12px;color:#DBEAFE}
+.tabs button:hover{background:rgba(255,255,255,.1);color:#fff}
+.tabs button.on{background:var(--yel);color:var(--ind-950);font-weight:700;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+.tabs button.on svg{color:var(--ind-950)}
+.tabbar .btn{background:var(--yel);border-color:var(--yel);color:var(--ind-950)}
+.tabbar .btn:hover{background:var(--yel-600);border-color:var(--yel-600);color:var(--ind-950)}
+.hero .kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.chip.dr{background:var(--ind-100);color:var(--ind-800)}
+.chip.yel{background:#FEF9C3;color:#854D0E}
+.av{background:var(--ind-950);color:var(--yel)}
+.stat{background:var(--line2);border-radius:12px}
+.stat .v{color:var(--ind-950);font-weight:800;font-stretch:100%}
+.score{background:var(--line2);border-radius:16px}
+.bigbar i{background:linear-gradient(90deg,var(--ind-600),var(--ok))}
+.cat{border-radius:16px}
+.ck{border-radius:12px}
+.modal{background:rgba(10,37,64,.55)}
+.modal .box{border-radius:16px}
+.tw{border:1px solid var(--line);border-radius:12px;margin:0}
+@media (max-width:1320px){.hero .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.hero .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ============================================================
+   JM MOBILE — skrin ≤ 640px: tiada scroll ke tepi.
+   Jadual bertukar jadi kad; label lajur diisi oleh skrip jmCards().
+   ============================================================ */
+html,body{max-width:100%;overflow-x:hidden}
+@media (max-width:640px){
+  .tbl,.tw,.table-responsive,.tbl-wrap{overflow:visible!important;border:0!important;background:none!important;margin:0!important;border-radius:0!important;max-height:none!important}
+  table.jm-cards{min-width:0!important;width:100%!important;border:0!important;background:none!important;border-collapse:separate!important}
+  table.jm-cards thead{display:none!important}
+  table.jm-cards,table.jm-cards tbody,table.jm-cards tfoot,table.jm-cards tr,table.jm-cards td{display:block!important;width:100%!important;max-width:none!important}
+  table.jm-cards tr{position:relative;background:#fff;border:1px solid #E2E8F0;border-radius:12px;margin:0 0 10px;padding:4px 14px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+  table.jm-cards tbody tr:hover td,table.jm-cards tbody tr:hover{background:#fff!important}
+  table.jm-cards td{position:relative;padding:9px 0 9px 40%!important;min-height:36px;border:0!important;border-bottom:1px solid #F1F5F9!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere;background:none!important;box-shadow:none!important}
+  table.jm-cards td:last-child{border-bottom:0!important}
+  table.jm-cards td::before{content:attr(data-label);position:absolute;left:0;top:9px;width:36%;font-size:10.5px;font-weight:600;line-height:1.35;text-transform:uppercase;letter-spacing:.05em;color:#64748B;white-space:normal}
+  /* sel pertama = tajuk kad: label di atas, nilai penuh lebar */
+  table.jm-cards td:first-child:not(.jm-full){padding:10px 0!important;font-size:14px}
+  table.jm-cards td:first-child:not(.jm-full)::before{position:static;display:block;width:auto;margin-bottom:3px}
+  /* sel tanpa label (cth. butang padam) */
+  table.jm-cards td.jm-nolabel{padding-left:0!important;text-align:right!important}
+  table.jm-cards td.jm-nolabel::before{display:none}
+  /* baris colspan (kategori, kosong, memuatkan) */
+  table.jm-cards td.jm-full{padding:12px 0!important;text-align:center!important;border-bottom:0!important}
+  table.jm-cards td.jm-full::before{display:none}
+  table.jm-cards tr:has(> td.jm-full:only-child){padding:0 14px}
+  table.jm-cards td.category-banner,table.jm-cards .category-banner td{text-align:left!important;padding:10px 14px!important;border-radius:10px;margin:0 -14px;width:calc(100% + 28px)!important}
+  table.jm-cards td.category-banner{background:#0A2540!important;color:#fff!important;box-shadow:inset 4px 0 0 #FACC15!important}
+  table.jm-cards tr:has(> td.category-banner){background:none;border:0;box-shadow:none;padding:0}
+  /* kandungan dalam sel */
+  table.jm-cards td .prog,table.jm-cards td .mini{min-width:0;max-width:100%}
+  table.jm-cards td input,table.jm-cards td select,table.jm-cards td textarea{width:100%;max-width:100%}
+  table.jm-cards td .tick-group{flex-wrap:wrap}
+  table.jm-cards td .clip{max-width:100%;white-space:normal}
+  img,video,canvas,svg{max-width:100%}
+}
+
+@media (max-width:640px){
+  /* toolbar tab: 3 tab sebaris, teks boleh balut, ikon disorok */
+  .hero .tabs,.tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:6px!important;overflow:visible!important}
+  .hero .tabs .tab,.tabs button{justify-content:center;text-align:center;white-space:normal;line-height:1.25;padding:9px 6px!important;font-size:12px}
+  .hero .tabs .tab svg,.tabs button svg{display:none}
+  .tabbar{flex-direction:column;align-items:stretch;gap:8px}
+  .tabbar .sp{display:none}
+  .tabbar>.btn{justify-content:center}
+  .hero-head{padding:14px 16px}
+  .hero-head h1,.hero-head h2{font-size:19px}
+  .hero-head .actions,.hero-head .hero-act{width:100%}
+  .hero-head .actions .btn,.hero-head .hero-act .btn{flex:1;justify-content:center}
+  .hero-head>.btn{width:100%;justify-content:center}
+  .hero-head .chips{width:100%}
+  .ph .tools,.ph .search{width:100%}
+  .form-panel .form{grid-template-columns:minmax(0,1fr)}
+  .inp{min-width:0}
+  .ph select.inp,.ph .inp.sm{flex:1 1 160px;min-width:0;max-width:100%!important}
+  .tabbar .btn span,.hero-act .btn span{display:inline!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3 2.5 8 12 13l9.5-5z"/><path d="m2.5 12 9.5 5 9.5-5M2.5 16l9.5 5 9.5-5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-report" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="m20 11-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/></symbol>
+</svg>
+
+
+<main class="wrap">
+  <div class="tabbar">
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Modul">
+      <button role="tab" data-tab="dashboard" class="on" aria-selected="true"><svg class="i"><use href="#i-grid"/></svg><span>Dashboard projek</span></button>
+      <button role="tab" data-tab="laporan" aria-selected="false"><svg class="i"><use href="#i-report"/></svg><span>Laporan harian</span></button>
+      <button role="tab" data-tab="checklist" aria-selected="false"><svg class="i"><use href="#i-check"/></svg><span>Checklist BIM V2</span></button>
+    </nav>
+    <div class="sp"></div>
+    <a class="btn" id="dbLink" target="_blank" rel="noopener noreferrer" title="Buka Google Sheet database"><svg class="i"><use href="#i-db"/></svg><span>Database live</span></a>
+  </div>
+
+  <!-- ================= TAB 1: DASHBOARD ================= -->
+  <section id="v-dashboard">
+    <div class="hero">
+      <svg class="contour" viewBox="0 0 520 300" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2">
+        <g transform="rotate(-10 380 150)">
+          <ellipse cx="380" cy="150" rx="40" ry="24"/><ellipse cx="378" cy="152" rx="78" ry="48"/><ellipse cx="374" cy="154" rx="118" ry="74"/>
+          <ellipse cx="370" cy="156" rx="160" ry="100"/><ellipse cx="366" cy="158" rx="204" ry="128"/><ellipse cx="362" cy="160" rx="250" ry="158"/>
+        </g>
+        <path d="M350 150h60M380 128v44" stroke-width="1.6"/>
+      </svg>
+      <div class="hero-head">
+        <div>
+          <h2>Perjalanan fail Scan to BIM</h2>
+          <p id="heroSub">Pantau fail dari kerja tapak, pemprosesan pointcloud hingga sheet final.</p>
+        </div>
+        <div class="sp"></div>
+        <div class="chips" id="heroChips"></div>
+        <button class="btn p" data-open="mProject"><svg class="i"><use href="#i-plus"/></svg><span>Daftar fail baharu</span></button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+
+    <div class="grid g21">
+      <div class="panel" id="listPanel">
+        <div class="ph">
+          <h3>Senarai fail projek</h3><span class="src" id="listCount"></span>
+          <div class="sp"></div>
+          <label for="filterStatus" class="m" style="font-size:12px;color:var(--muted)">Tapis</label>
+          <select id="filterStatus" class="inp sm"></select>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Projek / No. fail</th><th>Tempoh kerja</th><th>Status</th><th>PIC</th><th>Progress QC</th><th></th></tr></thead>
+          <tbody id="projectBody"></tbody>
+        </table></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Agihan status fail</h3><span class="src" id="distCount"></span></div>
+        <div id="dist"></div>
+        <div class="stats" id="distStats" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <div class="grid g11">
+      <div class="panel">
+        <div class="ph"><h3>Arkib fail siap</h3><span class="src" id="doneCount">0 fail</span></div>
+        <div class="tw"><table>
+          <thead><tr><th>Projek / No. fail</th><th class="num">Tarikh siap</th><th>Skor checklist</th><th>PIC</th></tr></thead>
+          <tbody id="doneBody"></tbody>
+        </table></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Staff &amp; PIC ukur / BIM</h3><span class="src" id="staffCount"></span><div class="sp"></div>
+          <button class="link" data-open="mStaff"><svg class="i"><use href="#i-user"/></svg>Tambah staff</button></div>
+        <div class="people" id="people"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 2: LAPORAN HARIAN ================= -->
+  <section id="v-laporan" hidden>
+    <div class="panel">
+      <div class="ph"><h3>Borang laporan harian drafter / modeler</h3>
+        <p>Peratus dan status yang diisi akan kemas kini fail projek berkenaan secara automatik.</p></div>
+      <form id="reportForm" class="form" autocomplete="off">
+        <div class="f"><label for="rptStaff">Nama drafter / modeler <span class="req">*</span></label><select id="rptStaff" class="inp" required></select></div>
+        <div class="f"><label for="rptDept">Jabatan / bahagian</label>
+          <select id="rptDept" class="inp" required>
+            <option>Scan to BIM Unit</option><option>Terrestrial Laser Scanning (TLS)</option><option>UAV &amp; Drone Photogrammetry</option>
+            <option>Kadaster &amp; Ukur Kejuruteraan</option><option>QA/QC Check</option>
+          </select></div>
+        <div class="f"><label for="rptProj">Fail projek <span class="req">*</span></label><select id="rptProj" class="inp" required></select></div>
+        <div class="f s2"><label for="rptTask">Task harian yang dibuat <span class="req">*</span></label>
+          <input type="text" id="rptTask" class="inp" maxlength="300" placeholder="Contoh: Modeling Architectural LOD300 Aras 2 & cleaning pointcloud Block A" required></div>
+        <div class="f"><label for="rptHours">Jam dibelanjakan</label><input type="number" id="rptHours" class="inp" value="8" step="0.5" min="0.5" max="24" required></div>
+        <div class="f"><label for="rptPercent">Kemajuan projek terkini (%) <span class="req">*</span></label><input type="number" id="rptPercent" class="inp" min="0" max="100" placeholder="0 – 100" required></div>
+        <div class="f"><label for="rptStatus">Kemas kini status fail</label><select id="rptStatus" class="inp" required></select></div>
+        <div class="f"><label for="rptDeadline">Sasaran siap <span class="req">*</span></label><input type="date" id="rptDeadline" class="inp" required></div>
+        <div class="s3 factions"><button type="submit" class="btn p"><svg class="i"><use href="#i-send"/></svg>Hantar laporan harian</button></div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h3>Rekod laporan harian terkini</h3><span class="src" id="rptCount"></span></div>
+      <div class="tw"><table>
+        <thead><tr><th>Tarikh / masa</th><th>Drafter &amp; jabatan</th><th>No. fail</th><th>Tugasan</th><th class="num">Jam</th><th class="num">Progress</th><th>Status</th><th class="num">Sasaran</th></tr></thead>
+        <tbody id="reportBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 3: CHECKLIST ================= -->
+  <section id="v-checklist" hidden>
+    <div class="panel">
+      <div class="ph">
+        <h3>Checklist QC &amp; serahan projek (Scan to BIM V2)</h3>
+        <div class="sp"></div>
+        <label for="ckProject" style="font-size:12px;color:var(--muted)">Projek</label>
+        <select id="ckProject" class="inp sm" style="max-width:340px"></select>
+        <p>Ikut piawaian fail Checklist Scan to BIM V2.xlsx, dari sheet &amp; titleblock hingga Revit link.</p>
+      </div>
+      <div class="score">
+        <div class="lbl">
+          <div class="row"><span>Skor keseluruhan semakan QA/QC</span><b id="ckScore">0 / 0 (0%)</b></div>
+          <div class="bigbar"><i id="ckBar"></i></div>
+        </div>
+        <span class="chip mute" id="ckBadge">–</span>
+      </div>
+      <div class="cats" id="ckCats"></div>
+      <div class="ckfoot">
+        <span>Setiap tick disimpan terus dan jadi % progress projek.</span>
+        <button class="btn ok" id="ckSave"><svg class="i"><use href="#i-save"/></svg>Simpan &amp; segerak</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= MODAL: DAFTAR PROJEK ================= -->
+<div class="modal" id="mProject" role="dialog" aria-modal="true" aria-labelledby="mProjectT"><div class="box lg">
+  <div class="mh"><h4 id="mProjectT">Daftar fail projek baharu</h4><button class="ico" data-close aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <form id="projectForm" class="form" autocomplete="off">
+    <div class="f s3"><label for="projTitle">Tajuk projek <span class="req">*</span></label><input type="text" id="projTitle" class="inp" maxlength="200" placeholder="Contoh: Cadastral & Scan to BIM Menara 8, Putrajaya" required></div>
+    <div class="f"><label for="projFileNo">Nombor fail projek <span class="req">*</span></label><input type="text" id="projFileNo" class="inp" maxlength="60" placeholder="JUPEM/STB/2026/089" required></div>
+    <div class="f"><label for="projStatus">Status awal</label><select id="projStatus" class="inp"></select></div>
+    <div class="f"><label for="projStart">Tarikh mula kerja <span class="req">*</span></label><input type="date" id="projStart" class="inp" required></div>
+    <div class="f"><label for="projEnd">Tarikh akhir kerja <span class="req">*</span></label><input type="date" id="projEnd" class="inp" required></div>
+    <div class="f s3"><label for="projFile">Attachment client brief / spesifikasi</label><input type="file" id="projFile" class="inp">
+      <small>Hanya nama fail yang direkod (fail tak dimuat naik ke mana-mana).</small></div>
+    <div class="f s3">
+      <label style="display:flex;align-items:center">PIC terlibat<span class="sp"></span><button type="button" class="link" data-open="mStaff"><svg class="i"><use href="#i-user"/></svg>Tambah staff</button></label>
+      <div class="pick" id="staffPick"></div>
+    </div>
+    <div class="s3 factions"><button type="button" class="btn" data-close>Batal</button><button type="submit" class="btn p">Simpan fail projek</button></div>
+  </form>
+</div></div>
+
+<!-- ================= MODAL: TAMBAH STAFF ================= -->
+<div class="modal" id="mStaff" role="dialog" aria-modal="true" aria-labelledby="mStaffT"><div class="box">
+  <div class="mh"><h4 id="mStaffT">Tambah staff / PIC</h4><button class="ico" data-close aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <form id="staffForm" class="form" style="grid-template-columns:minmax(0,1fr)" autocomplete="off">
+    <div class="f"><label for="staffName">Nama penuh <span class="req">*</span></label><input type="text" id="staffName" class="inp" maxlength="80" placeholder="Contoh: Muhammad Ammar" required></div>
+    <div class="f"><label for="staffRole">Jawatan / peranan</label>
+      <select id="staffRole" class="inp">
+        <option>Senior Modeler / Drafter</option><option>BIM Coordinator</option><option>TLS / Laser Scanner Surveyor</option>
+        <option>UAV Pilot &amp; Specialist</option><option>QA/QC Checker</option>
+      </select></div>
+    <div class="factions"><button type="button" class="btn" data-close>Batal</button><button type="submit" class="btn p">Simpan staff</button></div>
+  </form>
+</div></div>
+
+<!-- ================= MODAL: PENGESAHAN PADAM ================= -->
+<div class="modal" id="mConfirm" role="alertdialog" aria-modal="true" aria-labelledby="mConfirmT"><div class="box">
+  <div class="mh"><h4 id="mConfirmT">Padam fail projek?</h4></div>
+  <p id="mConfirmTxt"></p>
+  <div class="factions"><button class="btn" data-close>Batal</button><button class="btn danger" id="mConfirmYes">Ya, padam</button></div>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= CONFIG ================= */
+const SHEET_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRs4qLMVZWv6J__EfhLmyu3owvC3zRt40W3S_oEpS3HNyhBcDwnMKyBAE1c9XLuhrEbJEcEt2bMoEgt/pubhtml';
+const KEYS={proj:'stb_projects',staff:'stb_staff',rpt:'stb_reports'};
+/* status → [kelas chip, warna bar, keterangan KPI] */
+const STATUS={
+  'Belum Mula':['mute','#94A3B8','Perancangan / queue'],
+  'On-Site':['warn','#CA8A04','Laser scanning / UAV'],
+  'Processing':['info','#3B82F6','Registration / pointcloud'],
+  'Drafting':['dr','#1E40AF','3D BIM modeling'],
+  'Sheet Final':['yel','#FACC15','Sheet & QC akhir'],
+  'Siap / Selesai':['ok','#047857','Diserahkan']
+};
+const ST_KEYS=Object.keys(STATUS);
+const DONE='Siap / Selesai';
+
+const DEF_PROJECTS=[
+  {id:'proj-101',title:'Cadastral & Scan to BIM Menara 8, Putrajaya',fileNo:'JUPEM/STB/2026/089',start:'2026-02-01',end:'2026-03-15',status:'Drafting',staffIds:['stf-1','stf-2'],attachment:'Client_Brief_Menara8.pdf',progressPercent:65,checklistScores:{}},
+  {id:'proj-102',title:'TLS As-Built Survey Hospital Sultanah Aminah',fileNo:'JUPEM/TLS/2026/014',start:'2026-01-10',end:'2026-02-28',status:'On-Site',staffIds:['stf-3'],attachment:'Spek_Scan_Hospital.pdf',progressPercent:30,checklistScores:{}},
+  {id:'proj-100',title:'Scan to BIM & 2D Cadastral Wisma Ukur',fileNo:'JUPEM/STB/2025/112',start:'2025-11-01',end:'2026-01-15',status:DONE,staffIds:['stf-1','stf-3'],attachment:'Final_Handover_WismaUkur.pdf',progressPercent:100,checklistScores:{}}
+];
+const DEF_STAFF=[
+  {id:'stf-1',name:'Ahmad Modeler',role:'Senior Modeler / Drafter'},
+  {id:'stf-2',name:'Siti BIM Spec',role:'BIM Coordinator'},
+  {id:'stf-3',name:'Khairul Surveyor',role:'TLS / Laser Scanner Surveyor'}
+];
+const DEF_REPORTS=[
+  {date:'2026-02-22 17:30',staffName:'Ahmad Modeler',dept:'Scan to BIM Unit',fileNo:'JUPEM/STB/2026/089',task:'Kemaskini Wall Alignment & Section Elevations Sheet Aras 2',hours:8,percent:65,status:'Drafting'}
+];
+
+/* 73 perkara — Checklist Scan to BIM V2 */
+const CHECKLIST=[
+  {category:'1. Sheet & titleblock',items:[
+    ['chk_1','Sheet - Umum','Nama lukisan berserta skala A3 yang betul [0:00 (A1), 0:00 (A3)]'],['chk_2','Sheet - Umum','Dimension grid & level'],['chk_3','Sheet - Umum','Speksifikasi pelan'],
+    ['chk_4','Sheet - Titleblock','Tajuk projek'],['chk_5','Sheet - Titleblock','Logo & alamat pemilik'],['chk_6','Sheet - Titleblock','Logo & alamat pengurus projek'],
+    ['chk_7','Sheet - Titleblock','Logo & alamat company'],['chk_8','Sheet - Titleblock','Nama LSr & tanda tangan'],['chk_9','Sheet - Titleblock','Nama Arkitek & tanda tangan (*jika perlu)'],
+    ['chk_10','Sheet - Titleblock','Nama bangunan'],['chk_11','Sheet - Titleblock','Nama lukisan (pelan tapak, pelan lantai aras, keratan rentas, pandangan)'],
+    ['chk_12','Sheet - Titleblock','Ruang nama (Diukur, Dilukis, Disemak oleh:)'],['chk_13','Sheet - Titleblock','Skala'],['chk_14','Sheet - Titleblock','Tarikh'],
+    ['chk_15','Sheet - Titleblock','No. Lukisan'],['chk_16','Sheet - Legend','Jadual nama & keluasan ruang'],['chk_17','Sheet - Legend','Kemasan dinding'],
+    ['chk_18','Sheet - Legend','Kemasan lantai & siling'],['chk_19','Sheet - Legend','Fire Protection System (FPS) *jika perlu']]},
+  {category:'2. Tag ruang & sanitary ware',items:[
+    ['chk_20','Tag Ruang','Nama Ruang (*termasuk tangga, koridor, ruang terbuka & etc.)'],['chk_21','Tag Ruang','Kemasan Lantai'],['chk_22','Tag Ruang','Kemasan Siling'],
+    ['chk_23','Tag Ruang','Ceiling Height'],['chk_24','Tag Ruang','Keluasan (m²) (*pastikan line boundary dalam ruang yang betul)'],
+    ['chk_25','Tag Ruang','Finish Floor Level (FFL: 00.000 *unit meter)'],['chk_26','Tag Ruang','Kod tag ruang *jika perlu'],['chk_27','Sanitary Ware','Water Closet (wc)'],
+    ['chk_28','Sanitary Ware','Water Tap (t)'],['chk_29','Sanitary Ware','Shower (sh)'],['chk_30','Sanitary Ware','Floor Trap (ft)'],['chk_31','Sanitary Ware','Sink/basin']]},
+  {category:'3. Annotation, line & built-in structure',items:[
+    ['chk_32','Annotation','Stair path arrow UP/DN'],['chk_33','Annotation','Bilangan anak tangga'],['chk_34','Annotation','Speksifikasi setiap tangga (jenis tangga, riser & tread)'],
+    ['chk_35','Annotation','Drop lantai UP/DN berserta nilai'],['chk_36','Annotation','Ramp UP/DN + hatching arrow (*jika ramp mempunyai groove line on site)'],
+    ['chk_37','Annotation','Arah \'fall\' air hujan + slope (FALL 00°)'],['chk_38','Line','Hidden line bukaan pintu & tingkap (*Section & Elevation Plans)'],
+    ['chk_39','Line','Glaze pintu kaca & tingkap (*Section & Elevation Plans)'],['chk_40','Line','Hidden line Void + text \'VOID\''],['chk_41','Line','Cut line tangga yang terpotong'],
+    ['chk_42','Line','Dotted line tangga yang terpotong'],['chk_43','Built-in Structure','Workstation (*jika ada)'],['chk_44','Built-in Structure','Sink countertop (*jika ada)'],
+    ['chk_45','Built-in Structure','Fixed cabinet (*jika ada)'],['chk_46','Built-in Structure','Tempat wudhuk + floor trap & water tap (*jika ada)']]},
+  {category:'4. Bumbung, hatching & tag',items:[
+    ['chk_47','Bumbung','Rainwater downpipe (RWDP) (*Floor, Roof, Section & Elevation Plans)'],['chk_48','Bumbung','Roof gutter'],['chk_49','Bumbung','Ridge cap/valley'],
+    ['chk_50','Bumbung','Longkang + lubang air di flatroof'],['chk_51','Hatching','Lantai jubin di tandas (*berdasarkan saiz jubin)'],['chk_52','Hatching','Bumbung (tiles, metal deck & etc.)'],
+    ['chk_53','Hatching','Cut section dinding batu bata'],['chk_54','Hatching','Cut section concrete column & beam'],['chk_55','Hatching','Lantai kayu (*jika ada)'],
+    ['chk_56','Hatching','Dinding jubin di tandas (*Section plan)'],['chk_57','Hatching','Hatching dinding di elevation plan (*jika ada: batu bata, kayu, groove line)'],
+    ['chk_58','Hatching','Hatching siling di RCP (*jika ada: siling gantung, timber strip, etc.)'],['chk_59','Tag','Door Tag - Floor plans'],['chk_60','Tag','Door Tag - Section plans'],
+    ['chk_61','Tag','Door Tag - Elevation plans'],['chk_62','Tag','Window Tag - Floor plans'],['chk_63','Tag','Window Tag - Section plans'],
+    ['chk_64','Tag','Window Tag - Elevation plans'],['chk_65','Tag','Wall Tag - Floor plans']]},
+  {category:'5. Site plan, jadual & Revit link',items:[
+    ['chk_66','Site Plan','Jadual petunjuk & warna hatching'],['chk_67','Site Plan','Boundary line'],['chk_68','Site Plan','Fire hydrant'],['chk_69','Site Plan','Landscape / green area'],
+    ['chk_70','Jadual Bukaan','Hidden line bukaan pintu & tingkap'],['chk_71','Jadual Bukaan','Hidden line Void + text \'VOID\''],['chk_72','Jadual Bukaan','Glaze pintu kaca & tingkap'],
+    ['chk_73','Revit Link','Model Mekanikal (Peralatan Bomba & Lif) (*jika ada)']]}
+];
+const CK_TOTAL=CHECKLIST.reduce((a,c)=>a+c.items.length,0);
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const parseD=s=>{if(!s)return null;const d=new Date(String(s).slice(0,10)+'T00:00:00');return isNaN(d)?null:d;};
+const dmy=s=>{const d=parseD(s);return d?pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear():'–';};
+const dmyT=s=>{const t=String(s||'').slice(11,16);return dmy(s)+(t?' · '+t:'');};
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+const daysTo=d=>Math.round((d-today())/864e5);
+const localStamp=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());};
+const initials=n=>String(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const chip=st=>`<span class="chip ${(STATUS[st]||STATUS['Belum Mula'])[0]}">${esc(st||'–')}</span>`;
+function load(k,def){try{const v=JSON.parse(localStorage.getItem(k));return Array.isArray(v)?v:JSON.parse(JSON.stringify(def));}catch(e){return JSON.parse(JSON.stringify(def));}}
+function save(){
+  try{localStorage.setItem(KEYS.proj,JSON.stringify(projects));localStorage.setItem(KEYS.staff,JSON.stringify(staff));localStorage.setItem(KEYS.rpt,JSON.stringify(reports));}
+  catch(e){toast('Gagal simpan data dalam browser ini',true);}
+}
+function toast(m,err){const t=$('#toast');t.textContent=m;t.classList.toggle('err',!!err);t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2600);}
+function progCell(p,col){p=Math.max(0,Math.min(100,+p||0));col=col||(p>=100?'var(--ok)':'var(--ind-600)');return `<div class="prog"><div class="bar"><i style="width:${p}%;background:${col}"></i></div><b>${p}%</b></div>`;}
+const staffNames=p=>(p.staffIds||[]).map(id=>{const s=staff.find(x=>x.id===id);return s?s.name:'';}).filter(Boolean);
+const ckCount=p=>{const sc=p.checklistScores||{};return CHECKLIST.reduce((a,c)=>a+c.items.filter(([id])=>sc[id]).length,0);};
+const isOverdue=p=>{const d=parseD(p.end);return p.status!==DONE&&d&&d<today();};
+
+/* ================= DATA ================= */
+let projects=load(KEYS.proj,DEF_PROJECTS);
+let staff=load(KEYS.staff,DEF_STAFF);
+let reports=load(KEYS.rpt,DEF_REPORTS);
+
+/* ================= TAB ================= */
+function switchTab(tab){
+  document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.tab===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+  ['dashboard','laporan','checklist'].forEach(t=>{$('#v-'+t).hidden=t!==tab;});
+  if(tab==='checklist')renderChecklist();
+  
+}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b)switchTab(b.dataset.tab);});
+
+/* ================= MODAL ================= */
+function openModal(id){$('#'+id).classList.add('on');const f=$('#'+id+' input:not([type=checkbox]):not([type=file]), #'+id+' select');if(f)setTimeout(()=>f.focus(),30);}
+function closeModal(el){el.classList.remove('on');}
+document.addEventListener('click',e=>{
+  const o=e.target.closest('[data-open]');if(o){e.preventDefault();openModal(o.dataset.open);return;}
+  const c=e.target.closest('[data-close]');if(c){closeModal(c.closest('.modal'));return;}
+  if(e.target.classList.contains('modal'))closeModal(e.target);
+});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[...document.querySelectorAll('.modal.on')];if(open.length)closeModal(open[open.length-1]);});
+
+/* ================= RENDER: DASHBOARD ================= */
+let filter='ALL';
+function renderDashboard(){
+  const n=st=>projects.filter(p=>p.status===st).length;
+  const over=projects.filter(isOverdue);
+  const kpi=(f,l,v,s,col,hl)=>`<button class="kpi${hl?' hl':''}${filter===f?' sel':''}" data-f="${esc(f)}"><div class="l">${col?`<i style="background:${col}"></i>`:''}${l}</div><div class="v">${v}</div><div class="s">${s}</div></button>`;
+  $('#kpis').innerHTML=
+     kpi('ALL','Jumlah fail berdaftar',projects.length,`${projects.length-n(DONE)} masih aktif`,null,true)
+    +kpi('Belum Mula','Belum mula',n('Belum Mula'),STATUS['Belum Mula'][2],STATUS['Belum Mula'][1])
+    +kpi('On-Site','On-site',n('On-Site'),STATUS['On-Site'][2],STATUS['On-Site'][1])
+    +kpi('Processing','Processing',n('Processing'),STATUS['Processing'][2],STATUS['Processing'][1])
+    +kpi('Drafting|Sheet Final','Drafting / sheet',n('Drafting')+n('Sheet Final'),'Modeling, sheet & QC',STATUS['Drafting'][1])
+    +kpi(DONE,'Siap / selesai',n(DONE),STATUS[DONE][2],STATUS[DONE][1]);
+
+  $('#heroChips').innerHTML=over.length?`<span class="chip bad">${over.length} lewat tarikh akhir</span>`:(projects.length?'<span class="chip ok">Semua dalam jadual</span>':'');
+  $('#heroSub').textContent='Pantau fail dari kerja tapak, pemprosesan pointcloud hingga sheet final. Dikemas kini '+dmy(localStamp())+'.';
+
+  // senarai utama
+  const sel=filter==='ALL'?projects:projects.filter(p=>filter.split('|').includes(p.status));
+  const list=sel.slice().sort((a,b)=>(a.status===DONE)-(b.status===DONE)||(parseD(a.end)||9e15)-(parseD(b.end)||9e15));
+  $('#listCount').textContent=list.length+' fail';
+  $('#projectBody').innerHTML=list.length?list.map(p=>{
+    const d=parseD(p.end),dd=d?daysTo(d):null,names=staffNames(p);
+    const due=p.status===DONE||dd==null?'':`<div class="m" style="color:${dd<0?'var(--bad)':dd<=14?'var(--warn)':'var(--muted)'}">${dd<0?Math.abs(dd)+' hari lewat':dd+' hari lagi'}</div>`;
+    return `<tr>
+      <td><div class="t">${esc(p.title)}</div><div class="m"><span class="ref">${esc(p.fileNo)}</span>${p.attachment?` · <svg class="i" style="width:12px;height:12px;vertical-align:-2px"><use href="#i-clip"/></svg> ${esc(p.attachment)}`:''}</div></td>
+      <td style="white-space:nowrap"><div>${dmy(p.start)} – ${dmy(p.end)}</div>${due}</td>
+      <td>${chip(p.status)}</td>
+      <td>${names.length?esc(names.join(', ')):'<span class="m">Belum di-assign</span>'}</td>
+      <td>${progCell(p.progressPercent,isOverdue(p)?'var(--bad)':null)}</td>
+      <td><button class="ico" data-del="${esc(p.id)}" title="Padam projek" aria-label="Padam ${esc(p.title)}"><svg class="i"><use href="#i-trash"/></svg></button></td>
+    </tr>`;}).join(''):'<tr><td colspan="6" class="empty">Tiada fail projek untuk status ini.</td></tr>';
+
+  // agihan status
+  const tot=projects.length||1;
+  $('#distCount').textContent=projects.length+' fail';
+  $('#dist').innerHTML=ST_KEYS.map(st=>{const v=n(st);return `<div class="hb"><div class="n">${esc(st)}</div><div class="track"><span style="width:${v/tot*100}%;background:${STATUS[st][1]}"></span></div><div class="val">${v}</div></div>`;}).join('');
+  const act=projects.filter(p=>p.status!==DONE);
+  const avg=act.length?Math.round(act.reduce((a,p)=>a+(+p.progressPercent||0),0)/act.length):0;
+  $('#distStats').innerHTML=`<div class="stat"><div class="l">Purata progress fail aktif</div><div class="v">${avg}%</div></div><div class="stat"><div class="l">Lewat tarikh akhir</div><div class="v" style="${over.length?'color:var(--bad)':''}">${over.length}</div></div>`;
+
+  // arkib siap
+  const done=projects.filter(p=>p.status===DONE||+p.progressPercent===100);
+  $('#doneCount').textContent=done.length+' fail';
+  $('#doneBody').innerHTML=done.length?done.map(p=>{const c=ckCount(p),full=c===CK_TOTAL;
+    return `<tr><td><div class="t">${esc(p.title)}</div><div class="m"><span class="ref">${esc(p.fileNo)}</span>${p.status!==DONE?' · '+chip(p.status):''}</div></td>
+      <td class="num">${dmy(p.end)}</td>
+      <td><span class="chip ${full?'ok':c?'warn':'mute'}">${full?'QA lulus 100%':c+' / '+CK_TOTAL+' disemak'}</span></td>
+      <td>${esc(staffNames(p).join(', ')||'–')}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">Belum ada fail yang siap sepenuhnya.</td></tr>';
+
+  // staff
+  $('#staffCount').textContent=staff.length+' orang';
+  $('#people').innerHTML=staff.length?staff.map(s=>{const k=projects.filter(p=>(p.staffIds||[]).includes(s.id)&&p.status!==DONE).length;
+    return `<div class="person"><div class="av">${esc(initials(s.name))}</div><div><b title="${esc(s.name)}">${esc(s.name)}</b><span>${esc(s.role)}</span></div><span class="chip ${k?'info':'mute'}">${k} aktif</span></div>`;}).join(''):'<div class="empty">Belum ada staff.</div>';
+}
+$('#kpis').addEventListener('click',e=>{const k=e.target.closest('.kpi');if(!k)return;filter=k.dataset.f;$('#filterStatus').value=filter;renderDashboard();$('#listPanel').scrollIntoView({behavior:'smooth',block:'start'});});
+$('#filterStatus').addEventListener('change',e=>{filter=e.target.value;renderDashboard();});
+
+/* padam projek (modal pengesahan, bukan confirm()) */
+let pendingDel=null;
+$('#projectBody').addEventListener('click',e=>{
+  const b=e.target.closest('[data-del]');if(!b)return;
+  const p=projects.find(x=>x.id===b.dataset.del);if(!p)return;
+  pendingDel=p.id;$('#mConfirmTxt').textContent=`"${p.title}" (${p.fileNo}) akan dipadam bersama status checklist dia. Laporan harian lama untuk fail ini kekal dalam rekod.`;
+  openModal('mConfirm');
+});
+$('#mConfirmYes').onclick=()=>{if(!pendingDel)return;projects=projects.filter(p=>p.id!==pendingDel);pendingDel=null;save();renderAll();closeModal($('#mConfirm'));toast('Fail projek dipadam');};
+
+/* ================= RENDER: DROPDOWN & STAFF PICK ================= */
+function fillStatusSelect(el,withAll){
+  const cur=el.value;
+  el.innerHTML=(withAll?'<option value="ALL">Semua fail</option>':'')+ST_KEYS.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')+(withAll?'<option value="Drafting|Sheet Final">Drafting + Sheet Final</option>':'');
+  if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;
+}
+function renderSelects(){
+  fillStatusSelect($('#filterStatus'),true);$('#filterStatus').value=filter;
+  fillStatusSelect($('#rptStatus'));fillStatusSelect($('#projStatus'));
+  const rs=$('#rptStaff'),rsv=rs.value;
+  rs.innerHTML='<option value="">– Pilih nama –</option>'+staff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} (${esc(s.role)})</option>`).join('');rs.value=rsv;
+  const rp=$('#rptProj'),rpv=rp.value;
+  rp.innerHTML='<option value="">– Pilih fail projek –</option>'+projects.map(p=>`<option value="${esc(p.id)}">${esc(p.fileNo)} – ${esc(p.title)}</option>`).join('');
+  if(projects.some(p=>p.id===rpv))rp.value=rpv;
+  const ck=$('#ckProject'),ckv=ck.value;
+  ck.innerHTML=projects.map(p=>`<option value="${esc(p.id)}">${esc(p.fileNo)} – ${esc(p.title)}</option>`).join('');
+  if(projects.some(p=>p.id===ckv))ck.value=ckv;
+  // kekalkan tick PIC bila staff baru ditambah semasa modal projek terbuka
+  const ticked=new Set([...document.querySelectorAll('#staffPick input:checked')].map(i=>i.value));
+  $('#staffPick').innerHTML=staff.length?staff.map(s=>`<label><input type="checkbox" value="${esc(s.id)}"${ticked.has(s.id)?' checked':''}><span title="${esc(s.name)}">${esc(s.name)}</span></label>`).join(''):'<span class="m" style="font-size:12px;color:var(--muted)">Tambah staff dahulu.</span>';
+}
+
+/* ================= RENDER: LAPORAN ================= */
+function renderReports(){
+  $('#rptCount').textContent=reports.length+' rekod';
+  $('#reportBody').innerHTML=reports.length?reports.slice().reverse().map(r=>`<tr>
+    <td style="white-space:nowrap" class="m">${dmyT(r.date)}</td>
+    <td><div class="t">${esc(r.staffName)}</div><div class="m">${esc(r.dept)}</div></td>
+    <td><span class="ref">${esc(r.fileNo)}</span></td>
+    <td><div class="clip" title="${esc(r.task)}">${esc(r.task)}</div></td>
+    <td class="num">${esc(r.hours)} j</td>
+    <td class="num" style="font-weight:650;color:var(--ok)">${esc(r.percent)}%</td>
+    <td>${chip(r.status)}</td>
+    <td class="num">${r.deadline?dmy(r.deadline):'–'}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Belum ada laporan harian dihantar.</td></tr>';
+}
+$('#reportForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const proj=projects.find(p=>p.id===$('#rptProj').value);
+  if(!proj){toast('Pilih fail projek yang sah',true);return;}
+  const pct=Math.max(0,Math.min(100,parseInt($('#rptPercent').value,10)||0));
+  const r={date:localStamp(),staffName:$('#rptStaff').value,dept:$('#rptDept').value,projId:proj.id,fileNo:proj.fileNo,
+    task:$('#rptTask').value.trim(),hours:parseFloat($('#rptHours').value)||0,percent:pct,status:$('#rptStatus').value,deadline:$('#rptDeadline').value};
+  proj.progressPercent=pct;proj.status=r.status;
+  reports.push(r);save();renderAll();
+  e.target.reset();
+  toast('Laporan dihantar · '+proj.fileNo+' kini '+pct+'% ('+r.status+')');
+});
+
+/* ================= RENDER: CHECKLIST ================= */
+function ckProject(){return projects.find(p=>p.id===$('#ckProject').value);}
+function renderChecklist(){
+  const p=ckProject(),box=$('#ckCats');
+  $('#ckSave').disabled=!p;
+  if(!p){box.innerHTML='<div class="empty">Daftar fail projek dahulu untuk mula semakan QC.</div>';updateCkSummary();return;}
+  p.checklistScores=p.checklistScores||{};
+  box.innerHTML=CHECKLIST.map((c,ci)=>`<div class="cat"><div class="cat-h"><h4>${esc(c.category)}</h4><b id="cat-c-${ci}"></b></div><div class="ck-grid">`
+    +c.items.map(([id,sub,txt])=>`<label class="ck"><input type="checkbox" data-ck="${id}"${p.checklistScores[id]?' checked':''}><div><small>${esc(sub)}</small><p>${esc(txt)}</p></div></label>`).join('')
+    +'</div></div>').join('');
+  updateCkSummary();
+}
+function updateCkSummary(){
+  const p=ckProject(),sc=p?(p.checklistScores||{}):{};let tot=0;
+  CHECKLIST.forEach((c,ci)=>{const n=c.items.filter(([id])=>sc[id]).length;tot+=n;const el=$('#cat-c-'+ci);if(el)el.textContent=n+'/'+c.items.length+' ('+Math.round(n/c.items.length*100)+'%)';});
+  const pct=Math.round(tot/CK_TOTAL*100);
+  $('#ckScore').textContent=tot+' / '+CK_TOTAL+' ('+pct+'%)';
+  $('#ckBar').style.width=pct+'%';
+  const b=$('#ckBadge');
+  if(!p){b.className='chip mute';b.textContent='Tiada projek';}
+  else if(pct===100){b.className='chip ok';b.textContent='Lulus QA/QC';}
+  else{b.className='chip warn';b.textContent='Dalam semakan';}
+  return pct;
+}
+$('#ckProject').addEventListener('change',renderChecklist);
+$('#ckCats').addEventListener('change',e=>{
+  const i=e.target.closest('input[data-ck]');if(!i)return;
+  const p=ckProject();if(!p)return;
+  p.checklistScores[i.dataset.ck]=i.checked;
+  p.progressPercent=updateCkSummary();
+  save();renderDashboard();
+});
+$('#ckSave').onclick=()=>{const p=ckProject();if(!p)return;p.progressPercent=updateCkSummary();save();renderDashboard();toast('Checklist '+p.fileNo+' disimpan · progress '+p.progressPercent+'%');};
+
+/* ================= BORANG: PROJEK & STAFF ================= */
+$('#projectForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const fileNo=$('#projFileNo').value.trim(),start=$('#projStart').value,end=$('#projEnd').value;
+  if(projects.some(p=>p.fileNo.toLowerCase()===fileNo.toLowerCase())){toast('No. fail '+fileNo+' dah wujud',true);$('#projFileNo').focus();return;}
+  if(end<start){toast('Tarikh akhir mesti selepas tarikh mula',true);$('#projEnd').focus();return;}
+  const f=$('#projFile').files[0];
+  projects.push({id:'proj-'+Date.now(),title:$('#projTitle').value.trim(),fileNo:fileNo,start:start,end:end,status:$('#projStatus').value,
+    staffIds:[...document.querySelectorAll('#staffPick input:checked')].map(i=>i.value),attachment:f?f.name:'',
+    progressPercent:$('#projStatus').value===DONE?100:0,checklistScores:{}});
+  save();e.target.reset();$('#staffPick').querySelectorAll('input').forEach(i=>i.checked=false);
+  renderAll();closeModal($('#mProject'));toast('Fail '+fileNo+' didaftarkan');
+});
+$('#staffForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('#staffName').value.trim();
+  if(staff.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast(name+' dah ada dalam senarai',true);return;}
+  staff.push({id:'stf-'+Date.now(),name:name,role:$('#staffRole').value});
+  save();e.target.reset();renderAll();closeModal($('#mStaff'));toast(name+' ditambah');
+});
+
+/* ================= BOOT ================= */
+function renderAll(){renderSelects();renderDashboard();renderReports();if(!$('#v-checklist').hidden)renderChecklist();}
+$('#dbLink').href=SHEET_URL;
+/* sync bila tab/iframe lain ubah data yang sama */
+window.addEventListener('storage',e=>{if(Object.values(KEYS).includes(e.key)){projects=load(KEYS.proj,DEF_PROJECTS);staff=load(KEYS.staff,DEF_STAFF);reports=load(KEYS.rpt,DEF_REPORTS);renderAll();}});
+renderAll();
+})();
+</script>
+
+<script>
+/* JM MOBILE — isi data-label setiap sel jadual daripada header (sokong rowspan/colspan).
+   Tak sentuh data atau logic; jalan semula bila jadual dirender semula. */
+(function(){
+  'use strict';
+  function txt(el){ return el.textContent.replace(/[▲▼⇅]/g,'').replace(/\s+/g,' ').trim(); }
+  function headLabels(table){
+    const rows = table.tHead ? Array.from(table.tHead.rows) : [];
+    if (!rows.length) return null;
+    const grid = [];
+    rows.forEach(function(tr, r){
+      grid[r] = grid[r] || [];
+      let c = 0;
+      Array.from(tr.cells).forEach(function(cell){
+        while (grid[r][c]) c++;
+        const cs = cell.colSpan || 1, rs = cell.rowSpan || 1, t = txt(cell);
+        for (let i = 0; i < rs; i++) { grid[r+i] = grid[r+i] || []; for (let j = 0; j < cs; j++) grid[r+i][c+j] = { t: t }; }
+        c += cs;
+      });
+    });
+    const n = Math.max.apply(null, grid.map(function(g){ return g.length; }));
+    const out = [];
+    for (let c = 0; c < n; c++) {
+      const parts = [];
+      grid.forEach(function(g){ const x = g[c]; if (x && x.t && parts[parts.length-1] !== x.t) parts.push(x.t); });
+      out.push(parts.join(' · '));
+    }
+    return out;
+  }
+  function label(table){
+    const labels = headLabels(table);
+    if (!labels) return;
+    table.classList.add('jm-cards');
+    const n = labels.length;
+    Array.from(table.tBodies).forEach(function(tb){
+      const occ = [];
+      Array.from(tb.rows).forEach(function(tr, r){
+        occ[r] = occ[r] || [];
+        let c = 0;
+        Array.from(tr.cells).forEach(function(cell){
+          while (occ[r][c]) c++;
+          const cs = cell.colSpan || 1, rs = cell.rowSpan || 1;
+          for (let i = 0; i < rs; i++) { occ[r+i] = occ[r+i] || []; for (let j = 0; j < cs; j++) occ[r+i][c+j] = 1; }
+          const full = cs > 1 && cs >= Math.ceil(n / 2);
+          cell.classList.toggle('jm-full', full);
+          const lab = full ? '' : (labels[c] || '');
+          if (cell.getAttribute('data-label') !== lab) cell.setAttribute('data-label', lab);
+          cell.classList.toggle('jm-nolabel', !full && !lab);
+          c += cs;
+        });
+      });
+    });
+  }
+  let queued = false;
+  function run(){ queued = false; document.querySelectorAll('table').forEach(label); }
+  function schedule(){ if (!queued) { queued = true; requestAnimationFrame(run); } }
+  function start(){
+    run();
+    new MutationObserver(function(muts){
+      for (const m of muts) { if (m.type === 'childList') { schedule(); return; } }
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+</body>
+</html>

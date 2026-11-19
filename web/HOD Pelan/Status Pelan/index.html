@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistem Pengurusan Pelan & Lukisan | Jurukur Mahabob & Co</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Tema JM: Navy · Royal · Gold (jangan tukar ke warna Canvas) */
+  :root{
+    --navy:#0A2540; --blue:#1E40AF; --royal:#1D4ED8; --light:#EFF6FF; --gold:#FACC15; --goldDark:#CA8A04; --goldTint:#FEF9C3;
+    --bg:#F8FAFC; --panel:#fff; --panel2:#F1F5F9; --line:#E2E8F0; --line3:#CBD5E1;
+    --text:#1E293B; --muted:#64748B;
+    --ok:#059669; --okTint:#ECFDF5; --prog:#2563EB; --wait:#94A3B8; --warn:#D97706; --warnTint:#FFFBEB; --bad:#DC2626; --badTint:#FEF2F2; --hold:#7C3AED;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{max-width:100%;overflow-x:hidden}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Inter","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  button{font:inherit}
+  .muted{color:var(--muted)}
+  .wrap{max-width:1240px;margin:0 auto;padding:22px 20px 40px}
+
+  /* ---------- Header ---------- */
+  .top{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;box-shadow:0 4px 12px -6px rgba(10,37,64,.5)}
+  .top .in{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{width:42px;height:42px;border-radius:12px;background:var(--gold);color:var(--navy);display:grid;place-items:center;flex:none}
+  .brand .t{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(250,204,21,.15);color:var(--gold);border:1px solid rgba(250,204,21,.4)}
+  .brand .s{font-size:12px;color:#BFDBFE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+  .acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tabnav{display:flex;align-items:center;background:rgba(255,255,255,.1);border-radius:10px}
+  .tabnav button{background:none;border:0;color:#fff;width:32px;height:34px;cursor:pointer;font-size:16px;border-radius:10px}
+  .tabnav button:hover{background:rgba(255,255,255,.12)}
+  .tabnav span{font-size:12px;color:#BFDBFE;padding:0 4px;white-space:nowrap}
+  .sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#D1FAE5;background:rgba(5,150,105,.18);border:1px solid rgba(52,211,153,.35);padding:6px 10px;border-radius:999px;white-space:nowrap}
+  .sync::before{content:"";width:8px;height:8px;border-radius:50%;background:#34D399}
+  .sync.err{color:#FECACA;background:rgba(220,38,38,.18);border-color:rgba(248,113,113,.4)}.sync.err::before{background:#F87171}
+  .btn{border:1px solid var(--line3);background:#fff;color:var(--navy);padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--royal);background:var(--light)}
+  .btn.primary{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+  .btn.primary:hover{background:#EAB308;border-color:#EAB308}
+  .btn.navy{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.navy:hover{background:var(--blue)}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:10px}
+  .btn.link{border:0;background:none;color:var(--royal);padding:2px 4px;font-size:12px}
+  .btn.link:hover{text-decoration:underline;background:none}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}.btn.danger:hover{background:#B91C1C;border-color:#B91C1C}
+  .del{border:1px solid #FECACA;background:#fff;color:var(--bad);width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:14px;display:inline-grid;place-items:center}
+  .del:hover{background:var(--badTint);border-color:var(--bad)}
+  td.act{position:sticky;right:0;background:#fff;box-shadow:-6px 0 8px -6px rgba(15,23,42,.15)}
+  th.act{position:sticky;right:0;z-index:2}
+  .top .btn.ghost{background:rgba(255,255,255,.1);border-color:transparent;color:#fff}
+  .top .btn.ghost:hover{background:rgba(255,255,255,.2)}
+  .me{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:12px;padding:3px 4px 3px 10px;font-size:12px;color:#BFDBFE;font-weight:600}
+  .me select{background:#fff;border:0;border-radius:9px;padding:6px 8px;font-weight:700;color:var(--navy);max-width:150px}
+  .me.set{background:rgba(250,204,21,.18)}
+  .scopebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:16px;font-size:13px}
+  .scopebar b{color:var(--navy)}
+  .sw{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--navy);user-select:none}
+  .sw input{width:16px;height:16px;accent-color:var(--royal)}
+  .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .fcard{border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;background:#fff;padding:14px;display:grid;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+  .fcard:hover{border-color:var(--royal);border-top-color:var(--gold);box-shadow:0 6px 16px -8px rgba(10,37,64,.25)}
+  .fcard.new{border-style:dashed;border-top:4px dashed var(--royal);place-content:center;justify-items:center;color:var(--royal);font-weight:700;min-height:120px}
+  .fcard .fn{font-size:16px;font-weight:800;color:var(--navy)}
+  .fcard .fm{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .arch{background:#FBFCFE}
+  .arch .ptable td{color:var(--muted)}
+  .chip.ar{border-style:dashed}
+  .icon{background:rgba(255,255,255,.1);border:0;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px}
+  .icon:hover{background:rgba(255,255,255,.2)}
+
+  /* ---------- Tab bar ---------- */
+  .tabbar{background:#fff;border-bottom:1px solid var(--line)}
+  .tabbar .in{max-width:1240px;margin:0 auto;padding:10px 20px;display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:thin}
+  .tabbar .lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;margin-right:4px}
+  .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:7px 12px;cursor:pointer;white-space:nowrap;font-weight:600;font-size:13px;color:var(--text);max-width:330px}
+  .chip .nm{overflow:hidden;text-overflow:ellipsis}
+  .chip:hover{border-color:var(--royal)}
+  .chip.on{border-color:var(--navy);background:var(--light);box-shadow:inset 0 0 0 1px var(--navy)}
+  .pct{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--panel2);color:var(--muted);flex:none}
+  .pct.full{background:var(--okTint);color:var(--ok)}
+  .pct.mid{background:var(--light);color:var(--royal)}
+  .rdot{width:8px;height:8px;border-radius:50%;background:var(--bad);flex:none}
+
+  /* ---------- Kad & seksyen ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:0 1px 2px rgba(15,23,42,.05);margin-bottom:18px;min-width:0}
+  .sechd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .sechd h2{margin:0;font-size:16px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sechd p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+  .tagsec{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:6px;background:var(--navy);color:#fff}
+  .tagsec.alt{background:var(--light);color:var(--royal);border:1px solid #DBEAFE}
+  .hl{color:var(--royal)}
+  .iconbox{width:36px;height:36px;border-radius:10px;background:var(--light);color:var(--royal);display:grid;place-items:center;flex:none}
+
+  .projhd{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+  .projhd h1{margin:6px 0 2px;font-size:20px;font-weight:800;color:var(--navy)}
+  .projhd .meta{font-size:12px;color:var(--muted)}
+  .isu{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid}
+  .isu.ok{color:var(--ok);background:var(--okTint);border-color:#A7F3D0}
+  .isu.bad{color:var(--bad);background:var(--badTint);border-color:#FECACA}
+  .pick{display:flex;align-items:center;gap:8px;min-width:280px}
+  .pick label{font-size:12px;color:var(--muted);white-space:nowrap}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+  .kpi .h{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:600;color:var(--muted)}
+  .kpi .h b{font-size:12px}
+  .kpi .v{font-size:28px;font-weight:800;color:var(--navy);margin-top:6px;font-variant-numeric:tabular-nums}
+  .kpi .v small{font-size:12px;font-weight:500;color:var(--muted);margin-left:4px}
+  .kpi .s{font-size:12px;color:var(--muted);margin-top:4px}
+  .kpi.hero{background:linear-gradient(135deg,var(--navy),var(--blue));border:0}
+  .kpi.hero .h,.kpi.hero .s{color:#BFDBFE}.kpi.hero .v{color:#fff}.kpi.hero .v small{color:var(--gold)}
+  .bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:10px}
+  .bar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+  .bar.blue i{background:var(--royal)}
+
+  .fchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .fchips .l{font-size:12px;color:var(--muted);margin-right:4px}
+  .fc{border:1px solid var(--line3);background:#fff;border-radius:10px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
+  .fc.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tri .t{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:14px 16px;background:#fff}
+  .tri .t .k{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+  .tri .t .k span{font-size:11px;text-transform:none;letter-spacing:0;padding:1px 8px;border-radius:6px;border:1px solid var(--c);color:var(--c)}
+  .tri .t .n{font-size:17px;font-weight:800;color:var(--navy);margin-top:6px}
+
+  /* ---------- Toolbar & jadual ---------- */
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
+  input,select,textarea{background:#fff;border:1px solid var(--line3);color:var(--text);border-radius:10px;padding:8px 11px;font:inherit;min-width:0}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--royal);box-shadow:0 0 0 2px rgba(29,78,216,.35)}
+  .toolbar input[type=search]{flex:1 1 220px}
+  .toolbar select{flex:0 1 170px}
+  .seg{display:inline-flex;background:var(--panel2);border-radius:10px;padding:3px}
+  .seg button{border:0;background:none;padding:5px 11px;border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+  .seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .mine.on{background:var(--gold);border-color:var(--gold)}
+
+  .tbl{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:620px}
+  table{width:100%;border-collapse:collapse;min-width:1100px}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+  th{position:sticky;top:0;background:var(--navy);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;z-index:1}
+  tbody tr:hover{background:#F8FBFF}
+  tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+  tr.saving{opacity:.55;pointer-events:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.wrap{white-space:normal;min-width:180px;max-width:280px}
+  .no{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:8px;background:var(--panel2);font-weight:700;color:var(--navy)}
+  .ed{padding:5px 8px;border-radius:999px;font-size:12.5px;font-weight:600;max-width:190px}
+  .ed.date{border-radius:10px;font-weight:500;width:140px}
+  .ed.txt{border-radius:10px;font-weight:500;width:220px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid currentColor;background:#fff;white-space:nowrap}
+  .pg{display:flex;align-items:center;gap:8px;min-width:150px}
+  .pg .b{flex:1;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;min-width:50px}
+  .pg .b i{display:block;height:100%}
+  .auto{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--light);color:var(--royal);margin-left:6px}
+  .late{color:var(--bad);font-weight:700}
+  .tfoot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--muted);padding:10px 4px 0}
+  .tfoot span{display:inline-flex;align-items:center;gap:5px;margin-left:12px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+  .empty{padding:30px;text-align:center;color:var(--muted)}
+
+  .dcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+  .dc{border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px;display:grid;gap:8px}
+  .dc.mine{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+  .dc .hd{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .dc .hd b{color:var(--navy)}
+  .dc .row{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;font-size:12.5px}
+  .dc .row>span:first-child{color:var(--muted)}
+  .dc .ed,.dc .ed.date,.dc .ed.txt{width:100%;max-width:none}
+
+  /* ---------- Portfolio ---------- */
+  .stathd{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .cnt{display:inline-flex;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid}
+  .cnt.bad{color:var(--bad);background:var(--badTint);border-color:#FECACA}
+  .cnt.ok{color:var(--ok);background:var(--okTint);border-color:#A7F3D0}
+  .attn{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--goldTint);border:1px solid #FDE68A;border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:13px}
+  .attn .tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--gold);color:var(--navy);margin-right:8px}
+  .ptable{min-width:820px}
+  .ptable td{padding:12px 12px}
+  .ptable .pn{font-weight:700;color:var(--navy)}
+  .ptable .sk{font-size:11.5px;color:var(--muted)}
+  .sp{min-width:180px}
+  .sp .r{display:flex;justify-content:space-between;font-size:12px;font-weight:600}
+  .sp .bar{margin-top:4px}
+
+  .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+  .alerts{display:grid;gap:8px;max-height:420px;overflow:auto;align-content:start}
+  .alert{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 12px;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;font-size:12.5px}
+  .alert b{color:var(--navy)}
+
+  /* ---------- Prestasi drafter ---------- */
+  .perf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+  .pc{border:1px solid var(--line);border-radius:14px;background:#FBFDFF;padding:14px;display:grid;gap:10px}
+  .pc .hd{display:flex;gap:10px;align-items:flex-start}
+  .av{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+  .pc .nm{font-weight:800;color:var(--navy)}
+  .pc .sub{font-size:11.5px;color:var(--muted)}
+  .pc .pp{margin-left:auto;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+  .pc .pp.full{background:var(--okTint);color:var(--ok)}
+  .pc .m{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12.5px}
+  .pc .m b{font-size:15px;color:var(--navy)}
+  .pc .m b.g{color:var(--ok)}
+  .pc .m small{color:var(--muted);font-weight:500}
+  .pc .note{font-size:11px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 8px;color:var(--muted)}
+  .pc .ft{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px;font-size:12px}
+  .ptab{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .ptab .cap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--light);font-size:13px;font-weight:700;color:var(--navy)}
+  .ptab .cap span{font-weight:500;font-size:11.5px;color:var(--muted)}
+  .ptab table{min-width:760px}
+  .ptab th{position:static;background:#fff;color:var(--muted);border-bottom:1px solid var(--line)}
+  .ptab td.k{color:var(--ok);font-weight:700;background:#F7FBF9}
+  .ptab td.t{color:var(--navy);font-weight:700;background:#F7F9FD}
+  .ptab tfoot td{background:var(--panel2);font-weight:700;color:var(--navy)}
+
+  /* ---------- Modal & toast ---------- */
+  .modal-bg{position:fixed;inset:0;background:rgba(10,37,64,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;border-radius:18px;width:min(460px,100%);box-shadow:0 30px 60px -20px rgba(10,37,64,.5);overflow:hidden;border-top:4px solid var(--gold)}
+  .modal .mh{background:var(--navy);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+  .modal .mh h3{margin:0;font-size:16px}
+  .modal .mh button{background:rgba(255,255,255,.12);border:0;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer}
+  .modal .mb{padding:16px 18px;display:grid;gap:12px}
+  .modal label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+  .modal input,.modal select,.modal textarea{width:100%}
+  .modal label.sw{display:flex;align-items:center;gap:8px;margin:0;color:var(--text);font-weight:500}
+  .modal label.sw input{width:16px;flex:none}
+  .modal .mf{padding:12px 18px;background:var(--bg);border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+  .hint{font-size:12px;color:var(--muted)}
+  .chips2{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chips2 span{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--light);color:var(--royal);border:1px solid #DBEAFE}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;border-left:4px solid #34D399;padding:12px 18px;border-radius:12px;display:none;z-index:60;max-width:90vw;font-weight:500;box-shadow:0 12px 30px -10px rgba(10,37,64,.5)}
+  .toast.err{border-left-color:#F87171}
+
+  @media(max-width:980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.tri{grid-template-columns:1fr}}
+  @media(max-width:640px){
+    .wrap{padding:14px 12px 30px}
+    .top{position:static}.top .in{padding:10px 12px}
+    .brand .t{font-size:16px}.badge,.sync{display:none}
+    .acts{width:100%}.acts .btn{flex:1;justify-content:center}
+    .brand .s{max-width:220px}
+    .kpi .v{font-size:23px}
+    .pick{min-width:0;width:100%}.pick select{flex:1}
+  }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="brand">
+    <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
+    <div style="min-width:0">
+      <div class="t">Sistem Pengurusan Pelan & Lukisan <span class="badge">Penjejak Kemajuan</span></div>
+      <div class="s" id="subTitle">Ringkasan Portfolio</div>
+    </div>
+  </div>
+  <div class="acts">
+    <div class="tabnav"><button id="tabPrev" aria-label="Tab sebelum">‹</button><span id="tabPos">Tab 1 / 1</span><button id="tabNext" aria-label="Tab seterusnya">›</button></div>
+    <button class="icon" id="btnRefresh" title="Refresh data">↻</button>
+    <span class="sync" id="sync">Memuatkan…</span>
+    <label class="me" id="failBox">Fail:<select id="failSel" aria-label="Pilih No. Fail"></select></label>
+    <label class="me" id="meBox" title="Pilihan — untuk tanda tugasan anda & rekod siapa buat perubahan">Saya:<select id="meSel" aria-label="Pilih nama anda"></select></label>
+    <button class="btn ghost" id="btnProj">＋ Projek / Fail Baru</button>
+    <button class="btn primary" id="btnAdd">＋ Tambah Lukisan</button>
+  </div>
+</div></header>
+
+<nav class="tabbar"><div class="in" id="tabbar"></div></nav>
+<main class="wrap" id="main"><div class="empty">Memuatkan data…</div></main>
+
+<div class="modal-bg" id="modalBg"><div class="modal" role="dialog" aria-modal="true">
+  <div class="mh"><h3 id="mTitle"></h3><button id="mClose" aria-label="Tutup">✕</button></div>
+  <div class="mb" id="mBody"></div>
+  <div class="mf" id="mFoot"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===================== KONFIGURASI ===================== */
+  const CFG = {
+    // WAJIB untuk GitHub Pages: URL Web App Apps Script (hujung /exec).
+    // Ambil dari: Apps Script > Deploy > Manage deployments > salin "Web app URL".
+    // Bila dibuka terus dari Apps Script, URL ini tak digunakan (terus guna google.script.run).
+    API_URL: 'https://script.google.com/macros/s/AKfycbyLhMX5KB5nxe2LWCz_S6k2FbJ-ledwVYVszpkZ3jjvXw9EnBK9NWdxOUxRY19YlP2Fyg/exec',
+    // Senarai lalai — dipakai bila dropdown dalam Sheet tak dapat dibaca
+    DEFAULTS: {
+      drafter: ['BELLA','HANA','NAIM','ALIF','SYANA','SYAZANA'],
+      status: ['Belum Mula','Dalam Proses','Ditangguhkan','Siap'],
+      semak: ['Belum Dihantar','Menunggu Semakan','Dalam Semakan','Perlu Pembetulan','Diluluskan'],
+      prog: [0,25,50,75,100]
+    },
+    SLA_DAYS: 14,        // drawing belum siap > hari ni sejak Tarikh Mula = lewat
+    REFRESH_MIN: 5
+  };
+  const MAP_D = {
+    kod: /kod\s*projek/i, nama: /nama\s*(projek|site)/i, sheet: /no\.?\s*sheet/i, dwg: /no\.?\s*drawing/i,
+    tajuk: /tajuk/i, drafter: /drafter|pelukis/i, status: /status\s*drawing/i, prog: /progres/i,
+    mula: /tarikh\s*mula/i, siap: /tarikh\s*siap/i, tempoh: /tempoh/i, semak: /status\s*semakan/i, catatan: /catatan/i
+  };
+  const MAP_P = { fail: /no\.?\s*fail/i, kod: /kod\s*projek/i, nama: /nama\s*(projek|site)/i, skop: /skop/i, status: /status\s*projek/i, isu: /isu/i };
+
+  /* ===================== UTIL ===================== */
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const IS_GAS = !!(typeof google !== 'undefined' && google.script && google.script.run);
+  // Mod API: di luar Apps Script (cth. GitHub Pages) tapi API_URL dah diisi
+  const HAS_API = !IS_GAS && /^https:\/\/script\.google\.com\/macros\/s\/[^\/]+\/exec$/.test(CFG.API_URL) && !/GANTI_DENGAN/.test(CFG.API_URL);
+  const DAY = 864e5;
+  const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+  const p2 = n => String(n).padStart(2, '0');
+  const fmt = d => d ? `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()}` : '—';
+  const iso = d => d ? `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}` : '';
+  const cmp = (a, b) => String(a).localeCompare(String(b), 'ms', { numeric: true });
+  const norm = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+  const key = s => norm(s).toUpperCase().replace(/[^A-Z0-9]/g, '_');
+  const pctOf = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const f2 = n => (Math.round(n * 100) / 100).toFixed(2);
+  // Panggil fungsi server: google.script.run (dalam Apps Script) atau POST ke Web App (GitHub Pages)
+  const run = (fn, ...args) => {
+    if (IS_GAS) return new Promise((ok, no) => google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...args));
+    if (!HAS_API) return Promise.reject(new Error('API_URL belum diisi. Cari GANTI_DENGAN_ID_DEPLOYMENT dalam fail HTML dan masukkan URL Web App (/exec).'));
+    // text/plain = tiada CORS preflight (Apps Script tak sokong OPTIONS)
+    return fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn, args }), cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(t => {
+        let j; try { j = JSON.parse(t); } catch (e) { throw new Error('Respons pelayan tidak sah. Semak deploy Web App (access: Anyone) & doPost.'); }
+        if (!j || !j.ok) throw new Error((j && j.error) || 'Ralat pelayan.');
+        return j.data;
+      });
+  };
+
+  function toDate(s){
+    s = norm(s); let m;
+    if ((m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/))) { const d = new Date(+m[3], +m[2]-1, +m[1]); return d.getMonth() === +m[2]-1 ? d : null; }
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1], +m[2]-1, +m[3]);
+    return null;
+  }
+  const toNum = s => { const t = String(s == null ? '' : s).replace(/[%,\s]/g, ''); return t === '' || isNaN(Number(t)) ? null : Number(t); };
+  function table(grid, map){
+    grid = (grid || []).slice();
+    const head = (grid[0] || []).map(norm), idx = {};
+    Object.keys(map).forEach(k => { idx[k] = head.findIndex(h => map[k].test(h)); });
+    return { idx, rows: grid.slice(1), get: (r, k) => idx[k] < 0 ? '' : norm(r[idx[k]]) };
+  }
+
+  /* ===================== KLASIFIKASI ===================== */
+  const stKey = s => /siap|selesai|complete/i.test(s) ? 'done' : /tangguh|hold|kiv/i.test(s) ? 'hold' : /proses|dalam|progress/i.test(s) ? 'prog' : 'wait';
+  const ST = { done:{ l:'Siap', c:'var(--ok)' }, prog:{ l:'Dalam Proses', c:'var(--prog)' }, wait:{ l:'Belum Mula', c:'var(--warn)' }, hold:{ l:'Ditangguhkan', c:'var(--hold)' } };
+  function semakColor(s){
+    if (/lulus|approved|final/i.test(s)) return 'var(--ok)';
+    if (/pembetulan|pindaan|tolak|reject/i.test(s)) return 'var(--bad)';
+    if (/dalam semakan|disemak|review/i.test(s)) return 'var(--prog)';
+    if (/menunggu|dihantar/i.test(s) && !/belum/i.test(s)) return 'var(--warn)';
+    return 'var(--wait)';
+  }
+  const isFix = s => /pembetulan|pindaan|tolak|reject/i.test(s);
+  const isApproved = s => /lulus|approved|final/i.test(s);
+  const phaseOf = s => /selesai/i.test(s) ? 'done' : /batal/i.test(s) ? 'cancel' : /tangguh/i.test(s) ? 'hold' : /belum/i.test(s) ? 'wait' : /proses|aktif/i.test(s) ? 'active' : '';
+  const PHASE = { active:['Dalam Proses','var(--prog)'], wait:['Belum Mula','var(--warn)'], hold:['Ditangguhkan','var(--hold)'], done:['Selesai','var(--ok)'], cancel:['Dibatalkan','var(--bad)'] };
+  const AV = [['#DBEAFE','#1D4ED8'],['#FEF3C7','#B45309'],['#D1FAE5','#047857'],['#EDE9FE','#6D28D9'],['#FEE2E2','#B91C1C'],['#E2E8F0','#0A2540']];
+  const avColor = n => AV[[...String(n)].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length];
+
+  /* ===================== STATE ===================== */
+  let REC = [], PRJ = new Map(), ORDER = [], OPT = {}, OPTP = {};
+  let fetchedAt = null, loading = false;
+  // Nama pengguna (pilihan): tanda "Tugasan Saya" & rekod siapa buat perubahan. Wajib hanya untuk padam.
+  let ME = (() => { try { return localStorage.getItem('jm_me') || ''; } catch (e) { return ''; } })();
+  let view = '__P';                               // '__P' = portfolio, selain itu = kod projek
+  const UI = { q:'', status:'', drafter:'', semak:'', sort:'sheet', mode:'table', mine:false, perfAll:false, siteCompare:false,
+    fail: (() => { try { return localStorage.getItem('jm_fail') || ''; } catch (e) { return ''; } })(),   // '' = Semua Fail
+    incDone: false, showArchive: false };
+  let PINFO = new Map(), FAILS = [];
+  // No. Fail: kolum "No. Fail" dalam PROJEK; sandaran = bahagian kod sebelum '-' terakhir (MCP0582026-KPM → MCP0582026)
+  const failFromKod = kod => { kod = String(kod || ''); const i = kod.lastIndexOf('-'); return i > 0 ? kod.slice(0, i) : kod; };
+
+  /* ===================== DATA ===================== */
+  function build(raw){
+    // PROJEK
+    PRJ = new Map(); ORDER = [];
+    if (raw.projek && raw.projek.length) {
+      const t = table(raw.projek, MAP_P);
+      t.rows.forEach(r => {
+        const kod = t.get(r, 'kod'); if (!kod || PRJ.has(kod)) return;
+        PRJ.set(kod, { kod, fail: t.get(r, 'fail') || failFromKod(kod), nama: t.get(r, 'nama'), skop: t.get(r, 'skop'), status: t.get(r, 'status'), isu: t.get(r, 'isu') });
+        ORDER.push(kod);
+      });
+    }
+    // DRAWING
+    const t = table(raw.drawing, MAP_D);
+    if (!(t.idx.kod >= 0 && t.idx.dwg >= 0)) throw new Error('Header "Kod Projek" / "No. Drawing" tidak dijumpai dalam DRAWING');
+    REC = [];
+    t.rows.forEach((r, i) => {
+      const kod = t.get(r,'kod'), dwg = t.get(r,'dwg');
+      if (!kod && !dwg) return;
+      const status = t.get(r,'status'), sk = stKey(status);
+      let prog = toNum(t.get(r,'prog'));
+      if (prog !== null && prog > 0 && prog <= 1 && /\./.test(t.get(r,'prog'))) prog *= 100;
+      const progEff = prog !== null ? Math.max(0, Math.min(100, Math.round(prog))) : (sk === 'done' ? 100 : 0);
+      const mula = toDate(t.get(r,'mula')), siap = toDate(t.get(r,'siap')), drafter = t.get(r,'drafter');
+      const age = mula ? Math.floor((today() - mula) / DAY) : null;
+      const p = PRJ.get(kod);
+      REC.push({
+        row: i + 2, kod: kod || '(Tiada kod)', nama: t.get(r,'nama') || (p && p.nama) || '', sheet: t.get(r,'sheet'), dwg, tajuk: t.get(r,'tajuk'),
+        drafter, assigned: !!drafter, status: status || 'Belum Mula', sk, prog: progEff, progRaw: prog,
+        mula, siap, tempoh: toNum(t.get(r,'tempoh')), tempohRaw: t.get(r,'tempoh'),
+        semak: t.get(r,'semak'), catatan: t.get(r,'catatan'),
+        late: (sk === 'prog' || sk === 'wait') && age !== null && age > CFG.SLA_DAYS, age
+      });
+    });
+    REC.forEach(r => { if (!ORDER.includes(r.kod)) ORDER.push(r.kod); });
+    // Pilihan dropdown: ikut Sheet, kalau tiada guna lalai + nilai sedia ada
+    const o = raw.options || {}, uniq = a => [...new Set(a.filter(Boolean))];
+    OPT = {
+      drafter: uniq((o.drafter && o.drafter.length ? o.drafter : CFG.DEFAULTS.drafter).concat(REC.map(r => r.drafter))),
+      status: uniq((o.status && o.status.length ? o.status : CFG.DEFAULTS.status).concat(REC.map(r => r.status))),
+      semak: uniq((o.semak && o.semak.length ? o.semak : CFG.DEFAULTS.semak).concat(REC.map(r => r.semak))),
+      prog: uniq((o.prog && o.prog.length ? o.prog.map(toNum).filter(v => v !== null) : CFG.DEFAULTS.prog))
+    };
+    const op = raw.optionsP || {};
+    OPTP = { skop: op.skop && op.skop.length ? op.skop : ['TOPO','UMAP','TOPO & UMAP'], status: op.status && op.status.length ? op.status : ['Belum Mula','Dalam Proses','Selesai'] };
+    if (ME && !OPT.drafter.some(d => key(d) === key(ME))) ME = '';
+    PINFO = new Map(); ORDER.forEach(k => PINFO.set(k, computeInfo(k)));
+    FAILS = [...new Set(ORDER.map(k => PINFO.get(k).fail))];
+    if (UI.fail && !FAILS.includes(UI.fail)) UI.fail = '';
+    if (view !== '__P' && (!ORDER.includes(view) || !inFail(view))) view = '__P';
+  }
+
+  function load(silent){
+    if (loading) return; loading = true;
+    $('btnRefresh').disabled = true;
+    const done = raw => {
+      try { build(raw); fetchedAt = new Date(); render(); setSync(); }
+      catch (e) { fail(e); }
+      loading = false; $('btnRefresh').disabled = false;
+    };
+    const fail = e => {
+      loading = false; $('btnRefresh').disabled = false;
+      const s = $('sync'); s.className = 'sync err'; s.textContent = 'Gagal segerak';
+      if (!silent) toast('Gagal baca data: ' + (e.message || e), true);
+      if (!REC.length) $('main').innerHTML = `<div class="card empty">Data tak dapat dibaca: ${esc(e.message || e)}</div>`;
+    };
+    run('getDashboardData').then(done, fail);
+  }
+  function setSync(){
+    const s = $('sync');
+    s.className = 'sync';
+    s.textContent = `Disegerak dengan Google Sheets · ${fetchedAt.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })}`;
+  }
+
+  /* ===================== METRIK ===================== */
+  function sum(rs){
+    const c = k => rs.filter(r => r.sk === k).length;
+    return { n: rs.length, done: c('done'), prog: c('prog'), wait: c('wait'), hold: c('hold'),
+      assigned: rs.filter(r => r.assigned).length, late: rs.filter(r => r.late).length,
+      fix: rs.filter(r => isFix(r.semak)).length, approved: rs.filter(r => isApproved(r.semak)).length };
+  }
+  // Hari bekerja unik bagi lukisan siap: julat [Tarikh Mula, Tarikh Siap), minimum 1 hari
+  function workDays(rs){
+    const set = new Set();
+    rs.forEach(r => {
+      if (r.sk !== 'done' || !r.mula) return;
+      const end = r.siap && r.siap > r.mula ? r.siap : new Date(r.mula.getTime() + DAY);
+      for (let d = new Date(r.mula), i = 0; d < end && i < 366; d = new Date(d.getTime() + DAY), i++) set.add(iso(d));
+    });
+    return set.size;
+  }
+  function perf(rs, includeIdle){
+    const names = new Map();
+    if (includeIdle) OPT.drafter.forEach(d => names.set(key(d), d));
+    rs.forEach(r => { if (r.assigned && !names.has(key(r.drafter))) names.set(key(r.drafter), r.drafter); });
+    const list = [...names.values()].map(name => {
+      const mine = rs.filter(r => key(r.drafter) === key(name)), s = sum(mine), hari = workDays(mine);
+      return Object.assign(s, { name, hari, kap: hari ? s.done / hari : 0, tempoh: s.done && hari ? hari / s.done : null, pct: pctOf(s.done, s.n) });
+    }).sort((a, b) => b.kap - a.kap || b.n - a.n || cmp(a.name, b.name));
+    const tot = { done: list.reduce((a, d) => a + d.done, 0), n: list.reduce((a, d) => a + d.n, 0), hari: list.reduce((a, d) => a + d.hari, 0), kap: list.reduce((a, d) => a + d.kap, 0) };
+    tot.tempoh = tot.done && tot.hari ? tot.hari / tot.done : null;
+    tot.output = tot.hari ? tot.done / tot.hari : 0;
+    return { list, tot };
+  }
+  const projInfo = kod => PINFO.get(kod) || computeInfo(kod);
+  function computeInfo(kod){
+    const p = PRJ.get(kod) || { kod, fail: failFromKod(kod), nama: (REC.find(r => r.kod === kod) || {}).nama || kod, skop:'', status:'', isu:'', unregistered:true };
+    const rs = REC.filter(r => r.kod === kod), s = sum(rs);
+    const phase = phaseOf(p.status) || (s.n && s.done === s.n ? 'done' : s.done + s.prog > 0 ? 'active' : 'wait');
+    const isNew = !['done','cancel','hold'].includes(phase) && (s.n === 0 || s.done + s.prog === 0);
+    return Object.assign({}, p, { rs, s, phase, isNew, archived: phase === 'done' || phase === 'cancel', pct: pctOf(s.done, s.n) });
+  }
+  /* Skop: No. Fail & Arkib */
+  const inFail = kod => !UI.fail || projInfo(kod).fail === UI.fail;
+  const scopedOrder = () => ORDER.filter(inFail);
+  const activeOrder = () => scopedOrder().filter(k => !projInfo(k).archived);
+  const archOrder = () => scopedOrder().filter(k => projInfo(k).archived);
+  const failRec = () => REC.filter(r => inFail(r.kod));                                    // semua (termasuk selesai)
+  const portRec = () => REC.filter(r => inFail(r.kod) && (UI.incDone || !projInfo(r.kod).archived));   // KPI portfolio
+  const failLabel = () => UI.fail || (FAILS.length > 1 ? 'Semua Fail' : (FAILS[0] || ''));
+
+  /* ===================== RENDER UTAMA ===================== */
+  const tabs = () => ['__P', ...activeOrder(), ...(view !== '__P' && projInfo(view).archived ? [view] : [])];
+  function render(){
+    renderHeader(); renderTabbar();
+    if (view === '__P') renderPortfolio(); else renderProject(view);
+  }
+  function renderHeader(){
+    const T = tabs(), i = T.indexOf(view);
+    $('tabPos').textContent = `Tab ${i + 1} / ${T.length}`;
+    $('subTitle').textContent = view === '__P' ? `Ringkasan Portfolio · ${failLabel()} · ${activeOrder().length} projek aktif` : `${projInfo(view).fail} · ${view} · ${projInfo(view).nama || ''}`;
+    $('failSel').innerHTML = (FAILS.length > 1 ? `<option value="">Semua Fail (${FAILS.length})</option>` : '') +
+      FAILS.map(f => `<option value="${esc(f)}" ${f === UI.fail ? 'selected' : ''}>${esc(f)} (${ORDER.filter(k => projInfo(k).fail === f && !projInfo(k).archived).length} aktif)</option>`).join('');
+    if (!UI.fail && FAILS.length === 1) $('failSel').value = FAILS[0];
+    $('meBox').classList.toggle('set', !!ME);
+    $('meSel').innerHTML = '<option value="">— Pilih nama —</option>' + OPT.drafter.map(d => `<option ${key(d) === key(ME) ? 'selected' : ''}>${esc(d)}</option>`).join('');
+  }
+  function renderTabbar(){
+    const all = sum(portRec());
+    const chip = (id, label, done, n, extra) => {
+      const p = pctOf(done, n), cls = n && done === n ? 'full' : p ? 'mid' : '';
+      return `<button class="chip ${view === id ? 'on' : ''}" data-tab="${esc(id)}" title="${esc(label)}">${extra || ''}<span class="nm">${esc(label)}</span><span class="pct ${cls}">${done}/${n} (${p}%)</span></button>`;
+    };
+    $('tabbar').innerHTML = `<span class="lbl">Senarai Tab:</span>` +
+      chip('__P', `Ringkasan Portfolio (${activeOrder().length} Projek)`, all.done, all.n, '▦') +
+      tabs().slice(1).map(k => { const p = projInfo(k); return chip(k, p.nama || k, p.s.done, p.s.n, (p.archived ? '📁 ' : '') + (p.isu ? '<span class="rdot" title="Ada isu"></span>' : '')); }).join('');
+    const ar = $('tabbar').querySelector(`.chip[data-tab="${CSS.escape(view)}"]`); if (ar && view !== '__P' && projInfo(view).archived) ar.classList.add('ar');
+    const on = $('tabbar').querySelector('.chip.on'); if (on) on.scrollIntoView({ block:'nearest', inline:'nearest' });
+  }
+
+  /* ---------- Blok KPI ---------- */
+  function kpiBlock(rs){
+    const s = sum(rs), pf = perf(rs, false).tot;
+    return `<section class="kpis">
+      <div class="kpi hero"><div class="h">Jumlah Lukisan <b>#</b></div><div class="v">${s.n}<small>Pelan</small></div><div class="s">${s.assigned} telah ditugaskan</div></div>
+      <div class="kpi"><div class="h">Siap <b style="color:var(--ok)">${pctOf(s.done, s.n)}%</b></div><div class="v" style="color:var(--ok)">${s.done}<small>/ ${s.n}</small></div><div class="bar"><i style="width:${pctOf(s.done, s.n)}%"></i></div></div>
+      <div class="kpi"><div class="h">Dalam Proses <b style="color:var(--royal)">◔</b></div><div class="v">${s.prog + s.wait}<small>Pelan</small></div><div class="s">${s.prog} Sedang Berjalan • ${s.wait} Belum Mula${s.hold ? ` • ${s.hold} Ditangguh` : ''}</div></div>
+      <div class="kpi"><div class="h">Kapasiti Pasukan <b style="color:var(--goldDark)">⚡</b></div><div class="v" style="color:var(--royal)">${f2(pf.kap)}<small>Pelan / Hari</small></div><div class="s">Purata Tempoh: ${pf.tempoh ? f2(pf.tempoh) : '—'} Hari / Pelan</div></div>
+    </section>`;
+  }
+
+  /* ---------- Ringkasan ikut Status Semakan ---------- */
+  function semakBlock(rs){
+    const s = sum(rs);
+    const counts = new Map(OPT.semak.map(v => [v, 0])); let none = 0;
+    rs.forEach(r => { if (!r.semak) none++; else counts.set(r.semak, (counts.get(r.semak) || 0) + 1); });
+    const chip = (v, l, n) => `<button class="fc ${UI.semak === v ? 'on' : ''}" data-semak="${esc(v)}">${esc(l)} (${n})</button>`;
+    return `<section class="card">
+      <div class="sechd"><div style="display:flex;gap:12px"><div class="iconbox">✦</div><div><h2>Ringkasan Kemajuan Mengikut Status Semakan</h2><p>Kiraan Diluluskan, Perlu Pembetulan dan Siap — dikira terus dari Google Sheets.</p></div></div></div>
+      <div class="fchips"><span class="l">Tapis Semakan:</span>${chip('', 'Semua', rs.length)}${[...counts].map(([k, n]) => chip(k, k, n)).join('')}${none ? chip('__none', 'Tiada Status', none) : ''}</div>
+      <div class="tri">
+        <div class="t" style="--c:var(--ok)"><div class="k">Kemajuan Lukisan Diluluskan <span>Final</span></div><div class="n">Progress: ${s.approved} / ${s.n} Diluluskan</div></div>
+        <div class="t" style="--c:var(--bad)"><div class="k">Kemajuan Pembetulan <span>Pembetulan</span></div><div class="n">Progress: ${s.fix} / ${s.n} Pembetulan</div></div>
+        <div class="t" style="--c:var(--royal)"><div class="k">Kemajuan Lukisan Siap <span>Siap</span></div><div class="n">Progress: ${s.done} / ${s.n} Siap</div></div>
+      </div></section>`;
+  }
+
+  /* ---------- Senarai lukisan (Bahagian A) ---------- */
+  function listBlock(withProject){
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`;
+    return `<section class="card">
+      <div class="sechd"><div><h2><span class="tagsec">BAHAGIAN A</span> Senarai Lukisan</h2>
+        <p>Semua lukisan boleh dikemaskini terus dalam jadual — disimpan ke Google Sheets serta-merta.${ME ? ` Anda: <b>${esc(ME)}</b> (lukisan anda bertanda kuning).` : ' Pilih nama di header <b>"Saya:"</b> untuk tanda lukisan anda.'}</p></div></div>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Cari no. pelan, pelukis, status atau catatan…" value="${esc(UI.q)}">
+        <select id="fStatus">${opt('', 'Semua Status', UI.status)}${OPT.status.map(v => opt(v, v, UI.status)).join('')}</select>
+        <select id="fDrafter">${opt('', 'Semua Pelukis', UI.drafter)}${OPT.drafter.map(v => opt(v, v, UI.drafter)).join('')}${opt('__none', 'Belum Assign', UI.drafter)}</select>
+        <select id="fSemak">${opt('', 'Semua Semakan', UI.semak)}${OPT.semak.map(v => opt(v, v, UI.semak)).join('')}</select>
+        <select id="fSort">${[['sheet','Susun: Pelan (1 - 9)'],['sheetDesc','Susun: Pelan (9 - 1)'],['prog','Susun: Progres (rendah)'],['progDesc','Susun: Progres (tinggi)'],['mula','Susun: Tarikh Mula (terkini)'],['drafter','Susun: Pelukis']].map(([v,l]) => opt(v, l, UI.sort)).join('')}</select>
+        ${ME ? `<button class="btn sm mine ${UI.mine ? 'on' : ''}" id="btnMine">★ Tugasan Saya</button>` : ''}
+        <span class="seg"><button data-mode="table" class="${UI.mode === 'table' ? 'on' : ''}">☰ Jadual</button><button data-mode="card" class="${UI.mode === 'card' ? 'on' : ''}">▦ Kad</button></span>
+      </div>
+      <div id="listBody" data-proj="${withProject ? 1 : 0}"></div>
+    </section>`;
+  }
+  function filteredList(scopeRs){
+    const q = UI.q.toLowerCase();
+    let rs = scopeRs.filter(r =>
+      (!UI.status || r.status === UI.status) &&
+      (!UI.drafter || (UI.drafter === '__none' ? !r.assigned : key(r.drafter) === key(UI.drafter))) &&
+      (!UI.semak || (UI.semak === '__none' ? !r.semak : r.semak === UI.semak)) &&
+      (!UI.mine || !ME || key(r.drafter) === key(ME)) &&
+      (!q || [r.kod, r.nama, r.sheet, r.dwg, r.tajuk, r.drafter, r.status, r.semak, r.catatan].join(' ').toLowerCase().includes(q)));
+    const by = {
+      sheet: (a, b) => cmp(a.kod, b.kod) || (toNum(a.sheet) || 0) - (toNum(b.sheet) || 0),
+      sheetDesc: (a, b) => cmp(b.kod, a.kod) || (toNum(b.sheet) || 0) - (toNum(a.sheet) || 0),
+      prog: (a, b) => a.prog - b.prog, progDesc: (a, b) => b.prog - a.prog,
+      mula: (a, b) => (b.mula ? b.mula.getTime() : 0) - (a.mula ? a.mula.getTime() : 0),
+      drafter: (a, b) => cmp(a.drafter || '~', b.drafter || '~')
+    }[UI.sort];
+    return rs.sort((a, b) => by(a, b) || cmp(a.dwg, b.dwg));
+  }
+  function selectHtml(r, f, list, cur, color){
+    const vals = list.includes(cur) || !cur ? list : [cur, ...list];
+    return `<select class="ed" data-row="${r.row}" data-f="${f}" style="color:${color || 'var(--text)'};border-color:${color || 'var(--line3)'};background:#fff">
+      ${!cur ? '<option value="">— Pilih —</option>' : ''}${vals.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`;
+  }
+  // Semua medan boleh diedit terus oleh semua pengguna
+  function cell(r, f){
+    switch (f) {
+      case 'drafter':
+        return selectHtml(r, 'drafter', OPT.drafter, r.drafter, r.assigned ? 'var(--navy)' : 'var(--bad)');
+      case 'status':
+        return selectHtml(r, 'status', OPT.status, r.status, ST[r.sk].c);
+      case 'prog': {
+        const bar = `<span class="b"><i style="width:${r.prog}%;background:${r.prog === 100 ? 'var(--ok)' : 'var(--royal)'}"></i></span>`;
+        const vals = OPT.prog.includes(r.prog) ? OPT.prog : [...OPT.prog, r.prog].sort((a, b) => a - b);
+        return `<div class="pg"><select class="ed" data-row="${r.row}" data-f="prog">${vals.map(v => `<option value="${v}" ${v === r.prog ? 'selected' : ''}>${v}%</option>`).join('')}</select>${bar}</div>`;
+      }
+      case 'tempoh':
+        return `${r.tempoh !== null ? r.tempoh + ' Hari' : (r.tempohRaw ? esc(r.tempohRaw) : '—')}<span class="auto" title="Dikira oleh formula dalam Sheet">⏱ Auto</span>`;
+      case 'mula': case 'siap': {
+        const late = f === 'mula' && r.late;
+        return `<input type="date" class="ed date" data-row="${r.row}" data-f="${f}" value="${iso(r[f])}"${late ? ` style="color:var(--bad);border-color:var(--bad)" title="Lewat — ${r.age} hari sejak Tarikh Mula"` : ''}>`;
+      }
+      case 'semak': {
+        const c = r.semak ? semakColor(r.semak) : 'var(--wait)';
+        return selectHtml(r, 'semak', OPT.semak, r.semak, c);
+      }
+      case 'catatan':
+        return `<input class="ed txt" data-row="${r.row}" data-f="catatan" value="${esc(r.catatan)}" maxlength="1000" placeholder="Tambah catatan…">`;
+    }
+    return '';
+  }
+  function renderList(){
+    const host = $('listBody'); if (!host) return;
+    const withProject = host.dataset.proj === '1';
+    const scope = view === '__P' ? portRec() : REC.filter(r => r.kod === view);
+    const rs = filteredList(scope), s = sum(rs);
+    const foot = `<div class="tfoot"><span style="margin:0"><b>${rs.length}</b> / ${scope.length} lukisan</span><span>
+      <span><i class="dot" style="background:var(--ok)"></i>${s.done} Selesai</span><span><i class="dot" style="background:var(--prog)"></i>${s.prog} Sedang Berjalan</span>
+      <span><i class="dot" style="background:var(--warn)"></i>${s.wait} Belum Mula</span>${s.hold ? `<span><i class="dot" style="background:var(--hold)"></i>${s.hold} Ditangguh</span>` : ''}</span></div>`;
+    if (!rs.length) { host.innerHTML = `<div class="tbl"><div class="empty">Tiada lukisan sepadan dengan tapisan.</div></div>` + foot; return; }
+    const mineCls = r => ME && key(r.drafter) === key(ME) ? 'mine' : '';
+    const delBtn = r => `<button class="del" data-del="${r.row}" title="Padam ${esc(r.dwg)}" aria-label="Padam ${esc(r.dwg)}">🗑</button>`;
+    if (UI.mode === 'card') {
+      host.innerHTML = `<div class="dcards">${rs.map(r => { return `<div class="dc ${mineCls(r)}" data-rowbox="${r.row}">
+        <div class="hd"><div><span class="no">${esc(r.sheet || '—')}</span> <b>${esc(r.dwg)}</b><div class="muted" style="font-size:12px">${withProject ? esc(r.kod) + ' · ' : ''}${esc(r.tajuk)}</div></div>${delBtn(r)}</div>
+        <div class="row"><span>Pelukis</span><span>${cell(r, 'drafter')}</span></div>
+        <div class="row"><span>Status</span><span>${cell(r, 'status')}</span></div>
+        <div class="row"><span>Peratus</span><span>${cell(r, 'prog')}</span></div>
+        <div class="row"><span>Tempoh</span><span>${cell(r, 'tempoh')}</span></div>
+        <div class="row"><span>Tarikh Mula</span><span>${cell(r, 'mula')}</span></div>
+        <div class="row"><span>Tarikh Siap</span><span>${cell(r, 'siap')}</span></div>
+        <div class="row"><span>Semakan</span><span>${cell(r, 'semak')}</span></div>
+        <div class="row"><span>Catatan</span><span>${cell(r, 'catatan')}</span></div></div>`; }).join('')}</div>` + foot;
+      return;
+    }
+    host.innerHTML = `<div class="tbl"><table><thead><tr>${withProject ? '<th>Projek</th>' : ''}<th># Pelan</th><th>No. Drawing</th><th>Tajuk</th><th>Pelukis Pelan</th><th>Status Kemajuan</th><th>Peratus Siap (%)</th><th>Tempoh Masa</th><th>Tarikh Mula</th><th>Tarikh Siap</th><th>Status Semakan</th><th>Catatan</th><th class="act"></th></tr></thead>
+      <tbody>${rs.map(r => { return `<tr class="${mineCls(r)}" data-rowbox="${r.row}">
+        ${withProject ? `<td><b>${esc(r.kod)}</b></td>` : ''}<td><span class="no">${esc(r.sheet || '—')}</span></td><td>${esc(r.dwg)}</td><td>${esc(r.tajuk)}</td>
+        <td>${cell(r, 'drafter')}</td><td>${cell(r, 'status')}</td><td>${cell(r, 'prog')}</td><td>${cell(r, 'tempoh')}</td>
+        <td>${cell(r, 'mula')}</td><td>${cell(r, 'siap')}</td><td>${cell(r, 'semak')}</td><td>${cell(r, 'catatan')}</td><td class="act">${delBtn(r)}</td></tr>`; }).join('')}</tbody></table></div>` + foot;
+  }
+
+  /* ---------- Prestasi pelukis (Bahagian B) ---------- */
+  function perfBlock(){
+    const isP = view === '__P', all = isP || UI.perfAll;
+    const rs = all ? failRec() : REC.filter(r => r.kod === view);
+    const { list, tot } = perf(rs, all);
+    const title = all ? `Semua Projek · ${esc(failLabel())} (termasuk selesai)` : esc((PRJ.get(view) || {}).nama || view);
+    const card = d => { const [bg, fg] = avColor(d.name);
+      const state = d.n === 0 ? 'Tersedia' : d.done === d.n ? 'Selesai' : d.prog ? 'Sedang Berjalan' : 'Belum Mula';
+      return `<div class="pc"><div class="hd"><div class="av" style="background:${bg};color:${fg}">${esc(d.name.slice(0, 2).toUpperCase())}</div>
+        <div><div class="nm">${esc(d.name)}</div><div class="sub">${d.done} / ${d.n} Pelan Siap • ${d.hari} Hari</div></div><span class="pp ${d.n && d.done === d.n ? 'full' : ''}">${d.pct}%</span></div>
+        <div class="m"><span>Kapasiti Sehari:</span><span><b class="g">${f2(d.kap)}</b> <small>pelan/hari</small></span></div>
+        <div class="m"><span>Purata Tempoh:</span><span><b>${d.tempoh !== null ? f2(d.tempoh) : '—'}</b> <small>hari/pelan</small></span></div>
+        <div class="note">${d.done} pelan siap • ${d.tempoh !== null ? f2(d.tempoh) : '—'} hari/pelan (${f2(d.kap)} pelan/hari)</div>
+        <div class="ft"><span style="color:${state === 'Selesai' ? 'var(--ok)' : state === 'Tersedia' ? 'var(--royal)' : 'var(--muted)'};font-weight:600">${state}</span><button class="btn link" data-tapis="${esc(d.name)}">Tapis Tugas →</button></div></div>`; };
+    const projOpts = `<option value="tab" ${!UI.perfAll ? 'selected' : ''}>Ikut Tab Dipilih (${isP ? 'Semua Projek' : esc((PRJ.get(view) || {}).nama || view)})</option>${isP ? '' : `<option value="all" ${UI.perfAll ? 'selected' : ''}>Semua Projek (Portfolio)</option>`}`;
+    const site = UI.siteCompare ? siteCompareTable() : '';
+    return `<section class="card" id="secPerf">
+      <div class="sechd"><div><div style="display:flex;gap:6px;margin-bottom:6px"><span class="tagsec">BAHAGIAN B</span><span class="tagsec alt">${isP ? 'Keseluruhan Portfolio' : 'Tapak #' + (tabs().indexOf(view))}</span></div>
+        <h2>〰 Perbandingan Prestasi Pelukis Pelan — <span class="hl">${title}</span></h2>
+        <p>Kapasiti Harian (pelan/hari) dan Purata Tempoh Siap (hari/pelan). Hari = hari bekerja unik antara Tarikh Mula dan Tarikh Siap bagi lukisan yang siap.</p></div>
+        <div style="display:grid;gap:8px;justify-items:end"><div style="display:flex;gap:8px;align-items:center"><span class="muted" style="font-size:12px">Skop:</span><select id="perfScope">${projOpts}</select></div>
+        <button class="btn sm ${UI.siteCompare ? 'navy' : ''}" id="btnSite">▥ Perbandingan Antara Tapak</button></div></div>
+      ${site}
+      ${list.length ? `<div class="perf">${list.map(card).join('')}</div>` : '<div class="empty">Tiada pelukis dalam skop ini.</div>'}
+      <div class="ptab"><div class="cap">▥ Jadual Analisis Prestasi & Kapasiti Pelukis Pelan (${title})<span>Kapasiti = Pelan/Hari • Tempoh Siap = Hari/Pelan</span></div>
+        <div style="overflow:auto"><table><thead><tr><th>Pelukis Pelan</th><th class="num">Pelan Siap</th><th class="num">Jumlah Hari</th><th class="num">Kapasiti Harian (pelan/hari)</th><th class="num">Purata Tempoh (hari/pelan)</th><th>Catatan Prestasi</th></tr></thead>
+        <tbody>${list.map(d => { const [bg, fg] = avColor(d.name); return `<tr><td><span class="av" style="display:inline-grid;width:24px;height:24px;font-size:11px;border-radius:6px;background:${bg};color:${fg};margin-right:8px;vertical-align:middle">${esc(d.name[0])}</span><b>${esc(d.name)}</b></td>
+          <td class="num"><b>${d.done}</b> <span class="muted">/ ${d.n}</span></td><td class="num">${d.hari} Hari</td><td class="num k">${f2(d.kap)}</td><td class="num t">${d.tempoh !== null ? f2(d.tempoh) : '—'}</td>
+          <td class="muted">${d.n ? `${d.done} pelan siap • ${d.tempoh !== null ? f2(d.tempoh) : '—'} hari/pelan (${f2(d.kap)} pelan/hari)` : 'Tiada tugasan — tersedia'}</td></tr>`; }).join('')}</tbody>
+        <tfoot><tr><td>Keseluruhan Pasukan</td><td class="num">${tot.done} / ${tot.n}</td><td class="num">${tot.hari} Hari</td><td class="num">${f2(tot.kap)} <small class="muted">(Gabungan)</small></td><td class="num">${tot.tempoh !== null ? f2(tot.tempoh) : '—'}</td><td class="muted">Purata output: ${f2(tot.output)} pelan/hari</td></tr></tfoot></table></div></div>
+    </section>`;
+  }
+  function siteCompareTable(){
+    const rows = scopedOrder().map(k => { const p = projInfo(k), t = perf(p.rs, false).tot; return { p, t }; });
+    return `<div class="ptab" style="margin-bottom:16px"><div class="cap">Perbandingan Antara Tapak<span>Setiap projek: kapasiti gabungan pelukis & purata tempoh</span></div><div style="overflow:auto"><table>
+      <thead><tr><th>Projek / Tapak</th><th class="num">Lukisan Siap</th><th class="num">Jumlah Hari</th><th class="num">Kapasiti (pelan/hari)</th><th class="num">Purata Tempoh (hari/pelan)</th><th>Kemajuan</th></tr></thead>
+      <tbody>${rows.map(({ p, t }) => `<tr><td><b>${esc(p.nama || p.kod)}</b>${p.archived ? ' <span class="pct full">Selesai</span>' : ''}<div class="muted" style="font-size:11px">${esc(p.kod)}</div></td><td class="num">${p.s.done} / ${p.s.n}</td><td class="num">${t.hari}</td><td class="num k">${f2(t.kap)}</td><td class="num t">${t.tempoh !== null ? f2(t.tempoh) : '—'}</td>
+        <td style="min-width:160px"><div class="bar" style="margin:0"><i style="width:${p.pct}%"></i></div><span class="muted" style="font-size:11px">${p.pct}%</span></td></tr>`).join('')}</tbody></table></div></div>`;
+  }
+
+  /* ---------- Perlu tindakan ---------- */
+  function alertsHtml(){
+    const a = [], id = r => esc(r.dwg || r.kod), REC = failRec();
+    REC.filter(r => r.late).forEach(r => a.push(['var(--bad)', '⏰', `<b>${id(r)}</b> belum siap selepas ${r.age} hari · ${esc(r.drafter || 'Belum Assign')} · ${r.prog}%`]));
+    REC.filter(r => isFix(r.semak)).forEach(r => a.push(['var(--warn)', '✎', `<b>${id(r)}</b> perlu pembetulan · ${esc(r.drafter)}${r.catatan ? ' — ' + esc(r.catatan) : ''}`]));
+    REC.filter(r => r.sk === 'done' && /belum/i.test(r.semak)).forEach(r => a.push(['var(--wait)', '📤', `<b>${id(r)}</b> dah siap tapi belum dihantar untuk semakan · ${esc(r.drafter)}`]));
+    REC.filter(r => !r.assigned).forEach(r => a.push(['var(--prog)', '👤', `<b>${id(r)}</b> belum ada pelukis`]));
+    REC.filter(r => r.sk !== 'done' && r.siap).forEach(r => a.push(['var(--warn)', '📅', `<b>${id(r)}</b> Tarikh Siap diisi tapi status "${esc(r.status)}"`]));
+    REC.filter(r => r.sk === 'done' && !r.siap).forEach(r => a.push(['var(--warn)', '📅', `<b>${id(r)}</b> Siap tapi Tarikh Siap kosong`]));
+    REC.filter(r => /semak tarikh/i.test(r.tempohRaw)).forEach(r => a.push(['var(--bad)', '📅', `<b>${id(r)}</b> Tarikh Siap lebih awal dari Tarikh Mula`]));
+    scopedOrder().forEach(k => { const p = projInfo(k);
+      if (p.unregistered) a.push(['var(--bad)', '?', `<b>${esc(k)}</b> ada dalam DRAWING tapi tiada dalam tab PROJEK`]);
+      else if (!p.s.n && p.phase !== 'done') a.push(['var(--prog)', '📁', `<b>${esc(k)}</b> belum ada lukisan didaftar`]);
+      if (/belum/i.test(p.status) && p.s.done + p.s.prog > 0) a.push(['var(--prog)', '↻', `<b>${esc(k)}</b> masih "Belum Mula" tapi lukisan dah bermula — tukar ke Dalam Proses`]);
+      if (p.s.n && p.s.done === p.s.n && p.s.approved === p.s.n && !/selesai/i.test(p.status)) a.push(['var(--ok)', '✓', `<b>${esc(k)}</b> semua lukisan siap & diluluskan — tukar Status Projek ke Selesai`]);
+      if (/selesai/i.test(p.status) && p.s.done < p.s.n) a.push(['var(--bad)', '⚑', `<b>${esc(k)}</b> bertanda Selesai tapi ${p.s.n - p.s.done} lukisan belum siap`]);
+    });
+    return { n: a.length, html: a.length ? a.map(([c, ic, t]) => `<div class="alert" style="--c:${c}"><span>${ic}</span><span>${t}</span></div>`).join('') : '<div class="empty">✓ Tiada item perlu tindakan.</div>' };
+  }
+
+  /* ---------- PORTFOLIO ---------- */
+  function renderPortfolio(){
+    const P = activeOrder().map(projInfo), A = archOrder().map(projInfo), withIsu = P.filter(p => p.isu), al = alertsHtml();
+    const row = (p, i) => { const [pl, pc] = PHASE[p.phase] || PHASE.active;
+      return `<tr><td class="muted">${i + 1}</td>
+        <td><div class="pn">${esc(p.nama || p.kod)}${p.isNew ? ' <span class="pct" style="background:var(--gold);color:var(--navy)">BARU</span>' : ''}</div><div class="sk">${esc(p.kod)}${p.skop ? ' · ' + esc(p.skop) : ''}</div></td>
+        <td class="sp"><div class="r"><span style="color:${pc}">${esc(p.status || pl)}</span><span>${p.s.done}/${p.s.n} (${p.pct}%)</span></div><div class="bar"><i style="width:${p.pct}%;background:${p.pct === 100 ? 'var(--ok)' : 'var(--royal)'}"></i></div></td>
+        <td style="white-space:normal;min-width:200px">${p.isu ? `<span class="isu bad">⚠ Ada Isu</span> ${editIsuBtn(p.kod, 'Kemaskini')}<div class="muted" style="font-size:12px;margin-top:4px">${esc(p.isu)}</div>` : `<span class="isu ok">✓ Tiada Isu</span> ${editIsuBtn(p.kod, '+ Catat Isu')}`}</td>
+        <td class="num" style="white-space:nowrap"><button class="btn sm" data-tab="${esc(p.kod)}">Buka Tab →</button> <button class="del" data-delproj="${esc(p.kod)}" title="Padam projek ${esc(p.kod)}">🗑</button></td></tr>`; };
+    const archRow = (p, i) => `<tr><td class="muted">${i + 1}</td><td><div class="pn">${esc(p.nama || p.kod)}</div><div class="sk">${esc(p.kod)}${p.skop ? ' · ' + esc(p.skop) : ''}</div></td>
+        <td class="sp"><div class="r"><span style="color:${(PHASE[p.phase] || PHASE.done)[1]}">${esc(p.status || (PHASE[p.phase] || PHASE.done)[0])}</span><span>${p.s.done}/${p.s.n} (${p.pct}%)</span></div><div class="bar"><i style="width:${p.pct}%"></i></div></td>
+        <td>${p.s.approved}/${p.s.n} diluluskan</td><td class="num" style="white-space:nowrap"><button class="btn sm" data-tab="${esc(p.kod)}">Lihat →</button> <button class="del" data-delproj="${esc(p.kod)}" title="Padam projek ${esc(p.kod)}">🗑</button></td></tr>`;
+    // Ringkasan setiap No. Fail (bila "Semua Fail" & ada lebih dari satu fail)
+    const fileCards = !UI.fail && FAILS.length > 1 ? `<section class="card"><div class="sechd"><div><h2>🗂 Ringkasan ikut No. Fail</h2><p>Klik kad untuk tapis seluruh dashboard ikut fail tersebut.</p></div></div>
+      <div class="fgrid">${FAILS.map(f => { const ks = ORDER.filter(k => projInfo(k).fail === f), act = ks.filter(k => !projInfo(k).archived), rs = REC.filter(r => ks.includes(r.kod)), s = sum(rs), isu = ks.filter(k => projInfo(k).isu).length;
+        return `<button class="fcard" data-fail="${esc(f)}"><div class="fn">${esc(f)}</div><div class="fm"><span>${act.length} aktif · ${ks.length - act.length} selesai</span><span>${isu ? `<span class="late">${isu} isu</span>` : 'Tiada isu'}</span></div>
+          <div class="fm"><span>Lukisan siap</span><b style="color:var(--navy)">${s.done}/${s.n} (${pctOf(s.done, s.n)}%)</b></div><div class="bar" style="margin:0"><i style="width:${pctOf(s.done, s.n)}%"></i></div></button>`; }).join('')}<button class="fcard new" data-newproj="">＋ Fail Baru</button></div></section>` : '';
+    const scopebar = `<div class="scopebar"><span>Paparan: <b>${esc(failLabel())}</b> · ${P.length} projek aktif${A.length ? ` · ${A.length} selesai (dalam Arkib)` : ''}</span>
+      <span style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${A.length ? `<label class="sw"><input type="checkbox" id="incDone" ${UI.incDone ? 'checked' : ''}> Termasuk projek selesai dalam KPI & senarai</label>` : ''}
+      <button class="btn sm" data-newproj="${esc(UI.fail)}">＋ Projek / Fail Baru</button></span></div>`;
+    const archive = A.length ? `<section class="card arch"><div class="sechd"><div><h2>📁 Arkib Projek Selesai (${A.length})</h2><p>Projek dengan Status Projek "Selesai" / "Dibatalkan". Disembunyikan dari tab bar — data dalam Sheet tidak diubah.</p></div>
+        <button class="btn sm" id="btnArch">${UI.showArchive ? 'Sembunyi ▲' : 'Tunjuk ▼'}</button></div>
+        ${UI.showArchive ? `<div class="tbl" style="max-height:none"><table class="ptable"><thead><tr><th>#</th><th>Nama Projek / Tapak</th><th>Status & Kemajuan</th><th>Semakan</th><th class="num">Tindakan</th></tr></thead><tbody>${A.map(archRow).join('')}</tbody></table></div>` : ''}</section>` : '';
+    $('main').innerHTML = scopebar + fileCards + kpiBlock(portRec()) + `
+      <section class="card">
+        <div class="stathd"><div style="display:flex;gap:12px"><div class="iconbox">▣</div><div><h2 style="margin:0;font-size:16px;color:var(--navy)">Ringkasan Status Projek Aktif & Isu Tapak (${P.length} Lokasi)</h2>
+          <p class="muted" style="margin:2px 0 0;font-size:12px">${withIsu.length} daripada ${P.length} projek mempunyai isu yang memerlukan perhatian.</p></div></div>
+          <div style="display:flex;gap:8px"><span class="cnt bad">${withIsu.length} Projek Ada Isu</span><span class="cnt ok">${P.length - withIsu.length} Projek Lancar</span></div></div>
+        ${withIsu.map(p => `<div class="attn"><span><span class="tg">Perhatian Tapak</span><b>${esc(p.nama || p.kod)}:</b> ${esc(p.isu)}</span>${editIsuBtn(p.kod, 'Kemaskini Isu', true)}</div>`).join('')}
+        <div class="tbl" style="max-height:none"><table class="ptable"><thead><tr><th>#</th><th>Nama Projek / Tapak</th><th>Status & Kemajuan</th><th>Isu Projek</th><th class="num">Tindakan</th></tr></thead>
+          <tbody>${P.length ? P.map(row).join('') : '<tr><td colspan="5" class="empty">Tiada projek aktif. Daftar projek baru dalam tab PROJEK.</td></tr>'}</tbody></table></div>
+      </section>
+      <section class="grid2">${semakBlock(portRec()).replace('class="card"', 'class="card" style="margin:0"')}
+        <section class="card" style="margin:0"><div class="sechd"><div><h2>⚑ Perlu Tindakan</h2><p>${al.n} item dikesan secara automatik</p></div></div><div class="alerts">${al.html}</div></section></section>
+      <div style="height:18px"></div>` + listBlock(true) + perfBlock() + archive;
+    renderList();
+  }
+  const editIsuBtn = (kod, label, solid) => `<button class="btn ${solid ? 'sm primary' : 'link'}" data-isu="${esc(kod)}">${label}</button>`;
+
+  /* ---------- PROJEK (TAB) ---------- */
+  function renderProject(kod){
+    const p = projInfo(kod), n = tabs().indexOf(kod), [pl, pc] = PHASE[p.phase] || PHASE.active;
+    $('main').innerHTML = `
+      <section class="card"><div class="projhd">
+        <div><span class="tagsec">${p.archived ? '📁 Arkib' : 'Tab #' + n}</span> <span class="tagsec alt">${esc(p.fail)}</span>${p.isNew ? ' <span class="pct" style="background:var(--gold);color:var(--navy)">BARU</span>' : ''}
+          <h1>${esc(p.nama || kod)}</h1>
+          <div class="meta">${esc(kod)}${p.skop ? ' · Skop: <b>' + esc(p.skop) + '</b>' : ''} · Status Projek: <b style="color:${pc}">${esc(p.status || pl)}</b></div>
+          <div class="meta" style="margin:4px 0 10px">${p.s.done} daripada ${p.s.n} lukisan telah siap sepenuhnya (${p.pct}%)</div>
+          ${p.isu ? `<span class="isu bad">⚠ Ada Isu: ${esc(p.isu)}</span> ${editIsuBtn(kod, 'Kemaskini')}` : `<span class="isu ok">✓ Tiada Isu</span> ${editIsuBtn(kod, '+ Catat Isu')}`}
+        </div>
+        <div style="display:grid;gap:10px;justify-items:end"><button class="btn sm" data-delproj="${esc(kod)}" style="color:var(--bad);border-color:#FECACA">🗑 Padam Projek</button>
+        <div class="pick"><label for="pickProj">Pilih Projek:</label><select id="pickProj">${(() => { const o = (k, i) => { const q = projInfo(k); return `<option value="${esc(k)}" ${k === kod ? 'selected' : ''}>${i + 1}. ${esc(q.nama || k)} (${q.s.done}/${q.s.n} Siap)</option>`; };
+          const ar = archOrder(); return `<optgroup label="Projek Aktif">${activeOrder().map(o).join('')}</optgroup>${ar.length ? `<optgroup label="Arkib (Selesai)">${ar.map(o).join('')}</optgroup>` : ''}`; })()}</select></div></div>
+      </div></section>` + kpiBlock(p.rs) + semakBlock(p.rs) + listBlock(false) + perfBlock();
+    renderList();
+  }
+
+  /* ===================== SIMPAN ===================== */
+  function saveField(rowNo, f, value){
+    const r = REC.find(x => x.row === rowNo);
+    if (!r) return;
+    const box = document.querySelector(`[data-rowbox="${rowNo}"]`); if (box) box.classList.add('saving');
+    run('updateDrawing', { row: r.row, dwg: r.dwg, as: ME, changes: { [f]: value } })
+      .then(res => {
+        const auto = Object.keys(res.applied || {}).filter(k => k !== f);
+        toast(`Disimpan: ${r.dwg}${auto.length ? ' (auto: ' + auto.map(k => ({ prog:'progres', mula:'tarikh mula', siap:'tarikh siap' }[k] || k)).join(', ') + ')' : ''}`);
+        load(true);
+      })
+      .catch(e => { toast(e.message || String(e), true); renderList(); });
+  }
+
+  /* ===================== LOG MASUK & MODAL ===================== */
+  function setMe(name){
+    ME = name || '';
+    try { if (ME) localStorage.setItem('jm_me', ME); else localStorage.removeItem('jm_me'); } catch (e) {}
+    UI.mine = !!ME;
+    if (REC.length) render();
+    if (ME) toast(`Hai ${ME} — lukisan anda ditanda kuning.`);
+  }
+  const askName = msg => { toast(msg || 'Pilih nama anda di header "Saya:" dahulu.', true); const s = $('meSel'); if (s) { s.focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+  function openModal(title, body, foot){
+    $('mTitle').textContent = title; $('mBody').innerHTML = body; $('mFoot').innerHTML = foot;
+    $('modalBg').classList.add('open');
+    const f = $('mBody').querySelector('input,select,textarea'); if (f) setTimeout(() => f.focus(), 30);
+  }
+  const closeModal = () => $('modalBg').classList.remove('open');
+
+  function openIsu(kod){
+    const p = projInfo(kod);
+    openModal('Isu Projek', `<div><b>${esc(p.nama || kod)}</b><div class="hint">${esc(kod)}</div></div>
+      <div><label for="isuTxt">Isu Tapak</label><textarea id="isuTxt" rows="4" maxlength="1000" placeholder="cth: 1. Heighting baru • 2. Contour baru">${esc(p.isu)}</textarea></div>
+      <div class="hint">Disimpan dalam kolum "Isu Projek" tab PROJEK. Kosongkan untuk tanda "Tiada Isu".</div>`,
+      `<button class="btn" data-m="close">Batal</button>${p.isu ? '<button class="btn" data-m="isuClear">Tiada Isu</button>' : ''}<button class="btn primary" data-m="isuSave" data-kod="${esc(kod)}">Simpan</button>`);
+    $('mFoot').dataset.kod = kod;
+  }
+  function saveIsu(text){
+    const kod = $('mFoot').dataset.kod;
+    run('saveIsu', { kod, isu: text, as: ME }).then(() => { closeModal(); toast(text ? 'Isu disimpan.' : 'Isu dikosongkan.'); load(true); })
+      .catch(e => toast(e.message || String(e), true));
+  }
+  function openAdd(){
+    const kods = [...activeOrder(), ...archOrder()].filter(k => PRJ.has(k));
+    if (!kods.length) { toast('Daftar projek dalam tab PROJEK dahulu.', true); return; }
+    const tajuks = [...new Set(REC.map(r => r.tajuk).filter(Boolean))];
+    const def = view !== '__P' && PRJ.has(view) ? view : kods[0];
+    openModal('Tambah Lukisan', `
+      <div><label for="adKod">Projek</label><select id="adKod">${kods.map(k => `<option value="${esc(k)}" ${k === def ? 'selected' : ''}>${esc(k)} — ${esc((PRJ.get(k).nama || '').slice(0, 40))}</option>`).join('')}</select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label for="adCount">Bilangan Lukisan</label><input id="adCount" type="number" min="1" max="50" value="1"></div>
+        <div><label for="adDrafter">Pelukis (pilihan)</label><select id="adDrafter"><option value="">— Belum assign —</option>${OPT.drafter.map(d => `<option>${esc(d)}</option>`).join('')}</select></div>
+      </div>
+      <div><label for="adTajuk">Tajuk Drawing</label><input id="adTajuk" list="tajukList" maxlength="200" value="${esc(tajuks[0] || 'Topografi')}"><datalist id="tajukList">${tajuks.map(t => `<option value="${esc(t)}">`).join('')}</datalist></div>
+      <div><span class="hint">Akan dicipta:</span><div class="chips2" id="adPreview"></div></div>`,
+      `<button class="btn" data-m="close">Batal</button><button class="btn primary" data-m="add">Tambah</button>`);
+    const prev = () => {
+      const kod = $('adKod').value, n = Math.floor(Number($('adCount').value)), max = Math.max(0, ...REC.filter(r => r.kod === kod).map(r => toNum(r.sheet) || 0));
+      $('adPreview').innerHTML = n >= 1 && n <= 50 ? Array.from({ length: Math.min(n, 12) }, (_, i) => `<span>${esc(kod)}-${max + i + 1}</span>`).join('') + (n > 12 ? `<span>+${n - 12} lagi</span>` : '') : '<span style="color:var(--bad)">1 – 50 sahaja</span>';
+    };
+    ['adKod','adCount'].forEach(id => $(id).addEventListener('input', prev)); prev();
+  }
+  function doAdd(){
+    const payload = { kod: $('adKod').value, count: Math.floor(Number($('adCount').value)), drafter: $('adDrafter').value, tajuk: $('adTajuk').value.trim(), as: ME };
+    if (!(payload.count >= 1 && payload.count <= 50)) { toast('Bilangan lukisan mesti 1–50.', true); return; }
+    const b = $('mFoot').querySelector('[data-m="add"]'); b.disabled = true;
+    run('addDrawings', payload).then(res => { closeModal(); toast(`${res.count} lukisan ditambah (${payload.kod}-${res.from}${res.count > 1 ? ' hingga -' + res.to : ''}).`); view = payload.kod; load(true); })
+      .catch(e => { b.disabled = false; toast(e.message || String(e), true); });
+  }
+
+  function openProject(prefFail){
+    const fail = prefFail != null ? prefFail : (UI.fail || '');
+    const tajuks = [...new Set(REC.map(r => r.tajuk).filter(Boolean))];
+    openModal('Projek / Fail Baru', `
+      <div><label for="npFail">No. Fail</label><input id="npFail" list="failList" maxlength="40" value="${esc(fail)}" placeholder="cth: MCP0592026 — pilih sedia ada atau taip baru">
+        <datalist id="failList">${FAILS.map(f => `<option value="${esc(f)}">`).join('')}</datalist><div class="hint" id="npFailHint"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:10px">
+        <div><label for="npSite">Kod Site</label><input id="npSite" maxlength="15" placeholder="cth: BTU" style="text-transform:uppercase"></div>
+        <div><label>Kod Projek</label><input id="npKod" disabled></div></div>
+      <div><label for="npNama">Nama Site</label><input id="npNama" maxlength="200" placeholder="cth: 1. BUKIT TUNGGAL (KUALA TERENGGANU)"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label for="npSkop">Skop Kerja</label><select id="npSkop">${OPTP.skop.map(v => `<option>${esc(v)}</option>`).join('')}</select></div>
+        <div><label for="npStatus">Status Projek</label><select id="npStatus">${OPTP.status.map(v => `<option ${/belum/i.test(v) ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div></div>
+      <div style="border-top:1px solid var(--line);padding-top:10px"><label>Lukisan awal (pilihan)</label>
+        <div style="display:grid;grid-template-columns:90px 1fr 1fr;gap:8px">
+          <input id="npCount" type="number" min="0" max="50" value="0" title="Bilangan lukisan">
+          <input id="npTajuk" list="tajukList2" maxlength="200" value="${esc(tajuks[0] || 'Topografi')}" placeholder="Tajuk"><datalist id="tajukList2">${tajuks.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+          <select id="npDrafter"><option value="">— Belum assign —</option>${OPT.drafter.map(d => `<option>${esc(d)}</option>`).join('')}</select></div>
+        <div class="hint">0 = daftar projek sahaja. Lukisan boleh ditambah kemudian melalui "＋ Tambah Lukisan".</div></div>`,
+      `<button class="btn" data-m="close">Batal</button><button class="btn primary" data-m="proj">Daftar Projek</button>`);
+    const upd = () => {
+      const f = $('npFail').value.trim(), site = $('npSite').value.trim().toUpperCase();
+      $('npKod').value = f && site ? `${f}-${site}` : '';
+      $('npFailHint').innerHTML = !f ? '' : FAILS.includes(f) ? `Fail sedia ada · ${ORDER.filter(k => projInfo(k).fail === f).length} projek` : '<b style="color:var(--royal)">★ Fail baru</b> akan didaftarkan';
+    };
+    ['npFail','npSite'].forEach(id => $(id).addEventListener('input', upd)); upd();
+  }
+  function doProject(){
+    const fail = $('npFail').value.trim(), kod = $('npKod').value.trim(), nama = $('npNama').value.trim();
+    const count = Math.floor(Number($('npCount').value || 0));
+    if (!/^[A-Za-z0-9._\/-]{2,40}$/.test(fail)) return toast('No. Fail tidak sah.', true);
+    if (!/^[A-Za-z0-9]{1,15}$/.test($('npSite').value.trim())) return toast('Kod Site mesti huruf/nombor sahaja (maks 15).', true);
+    if (PRJ.has(kod)) return toast(`Kod Projek ${kod} sudah wujud.`, true);
+    if (!nama) return toast('Nama Site wajib diisi.', true);
+    if (!(count >= 0 && count <= 50)) return toast('Lukisan awal mesti 0–50.', true);
+    const b = $('mFoot').querySelector('[data-m="proj"]'); b.disabled = true;
+    run('addProject', { fail, kod, nama, skop: $('npSkop').value, status: $('npStatus').value, as: ME })
+      .then(() => count ? run('addDrawings', { kod, count, tajuk: $('npTajuk').value.trim(), drafter: $('npDrafter').value, as: ME }) : null)
+      .then(res => {
+        closeModal(); toast(`Projek ${kod} didaftarkan${res ? ` dengan ${res.count} lukisan` : ''}.`);
+        UI.fail = fail; try { localStorage.setItem('jm_fail', fail); } catch (e) {}
+        view = kod; load(true);
+      })
+      .catch(e => { b.disabled = false; toast(e.message || String(e), true); load(true); });
+  }
+  function openDelProject(kod){
+    if (!ME) return askName('Pilih nama anda di header "Saya:" dahulu sebelum padam projek (untuk rekod LOG PADAM).');
+    const p = projInfo(kod), n = p.s.n;
+    const risky = p.rs.some(r => r.prog > 0 || r.sk === 'done' || isApproved(r.semak));
+    const list = p.rs.slice(0, 6).map(r => `<span>${esc(r.dwg)}</span>`).join('') + (n > 6 ? `<span>+${n - 6} lagi</span>` : '');
+    openModal('Padam Projek', `<div>Padam projek <b>${esc(p.nama || kod)}</b>?</div>
+      <div class="hint">${esc(kod)} · Fail ${esc(p.fail)}${p.skop ? ' · ' + esc(p.skop) : ''} · ${esc(p.status || '—')}${p.unregistered ? ' · (tiada dalam tab PROJEK)' : ''}</div>
+      ${n ? `<div><div class="hint">Lukisan yang akan dipadam sekali (${n}):</div><div class="chips2">${list}</div></div>
+        <label class="sw" style="text-transform:none;letter-spacing:0;font-size:13px"><input type="checkbox" id="dpAll"> Saya faham <b>${n} lukisan</b> projek ini juga akan dipadam</label>` : '<div class="hint">Projek ini belum ada lukisan.</div>'}
+      ${risky ? `<div class="attn" style="margin:0;background:var(--badTint);border-color:#FECACA"><span>⚠ Projek ini dah ada progres (${p.s.done} siap, ${p.s.prog} dalam proses). Taip <b>${esc(kod)}</b> untuk sahkan.</span></div>
+        <input id="dpType" autocomplete="off" placeholder="${esc(kod)}">` : ''}
+      <div class="hint">Dipadam oleh: <b>${esc(ME)}</b>. Salinan baris PROJEK & DRAWING disimpan dalam tab <b>LOG PADAM</b>.</div>`,
+      `<button class="btn" data-m="close">Batal</button><button class="btn danger" data-m="delproj">🗑 Padam Projek</button>`);
+    $('mFoot').dataset.kod = kod;
+  }
+  function doDelProject(){
+    const kod = $('mFoot').dataset.kod, p = projInfo(kod), n = p.s.n;
+    if (n && !$('dpAll').checked) return toast(`Tandakan pengesahan untuk padam ${n} lukisan sekali.`, true);
+    if ($('dpType') && $('dpType').value.trim() !== kod) return toast('Kod projek yang ditaip tidak sepadan.', true);
+    const b = $('mFoot').querySelector('[data-m="delproj"]'); b.disabled = true;
+    run('deleteProject', { kod, as: ME, withDrawings: n > 0, expectDrawings: n })
+      .then(res => { closeModal(); toast(`Projek ${res.kod} dipadam${res.drawings ? ` bersama ${res.drawings} lukisan` : ''}.`); view = '__P'; load(true); })
+      .catch(e => { b.disabled = false; toast(e.message || String(e), true); });
+  }
+  function openDelete(rowNo){
+    const r = REC.find(x => x.row === rowNo);
+    if (!r) return;
+    if (!ME) return askName('Pilih nama anda di header "Saya:" dahulu sebelum padam lukisan (untuk rekod LOG PADAM).');
+    const risky = r.sk === 'done' || isApproved(r.semak) || r.prog > 0;
+    openModal('Padam Lukisan', `<div>Padam <b>${esc(r.dwg)}</b>${r.tajuk ? ' (' + esc(r.tajuk) + ')' : ''} dari tab DRAWING?</div>
+      <div class="hint">${esc(r.kod)} · Sheet ${esc(r.sheet || '—')} · ${esc(r.drafter || 'Belum Assign')} · ${esc(r.status)} · ${r.prog}%</div>
+      ${risky ? `<div class="attn" style="margin:0;background:var(--badTint);border-color:#FECACA"><span>⚠ Lukisan ini dah ada progres (${esc(r.status)}${r.semak ? ' · ' + esc(r.semak) : ''}). Pastikan memang tersalah masuk.</span></div>` : ''}
+      <div class="hint">Dipadam oleh: <b>${esc(ME)}</b>. Salinan baris disimpan dalam tab <b>LOG PADAM</b> — boleh disalin semula ke DRAWING kalau tersilap.</div>`,
+      `<button class="btn" data-m="close">Batal</button><button class="btn danger" data-m="del">🗑 Padam</button>`);
+    $('mFoot').dataset.row = rowNo;
+  }
+  function doDelete(){
+    const r = REC.find(x => x.row === Number($('mFoot').dataset.row)); if (!r) return closeModal();
+    const b = $('mFoot').querySelector('[data-m="del"]'); b.disabled = true;
+    run('deleteDrawing', { row: r.row, dwg: r.dwg, as: ME })
+      .then(res => { closeModal(); toast(`${res.dwg} dipadam${res.mode === 'clear' ? ' (baris dikosongkan — formula dikekalkan)' : ''}.`); load(true); })
+      .catch(e => { b.disabled = false; toast(e.message || String(e), true); });
+  }
+
+  let tt; function toast(m, err){ const t = $('toast'); t.textContent = m; t.className = 'toast' + (err ? ' err' : ''); t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 4500); }
+
+  /* ===================== EVENTS ===================== */
+  const go = id => { view = id; UI.perfAll = false; UI.siteCompare = false; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('tabPrev').onclick = () => { const T = tabs(), i = T.indexOf(view); go(T[(i - 1 + T.length) % T.length]); };
+  $('tabNext').onclick = () => { const T = tabs(), i = T.indexOf(view); go(T[(i + 1) % T.length]); };
+  $('btnRefresh').onclick = () => load();
+  $('meSel').addEventListener('change', e => setMe(e.target.value));
+  const setFail = f => { UI.fail = f || ''; try { localStorage.setItem('jm_fail', UI.fail); } catch (e) {} if (view !== '__P' && !inFail(view)) view = '__P'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('failSel').addEventListener('change', e => setFail(e.target.value));
+  $('btnAdd').onclick = openAdd;
+  $('btnProj').onclick = () => openProject();
+  $('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('click', e => { if (e.target === $('modalBg')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+  $('mFoot').addEventListener('click', e => {
+    const m = e.target.closest('[data-m]'); if (!m) return;
+    ({ close: closeModal, add: doAdd, del: doDelete, proj: doProject, delproj: doDelProject,
+       isuSave: () => saveIsu($('isuTxt').value.trim()), isuClear: () => saveIsu('') })[m.dataset.m]();
+  });
+
+  const main = $('main');
+  main.addEventListener('click', e => {
+    const dp = e.target.closest('[data-delproj]'); if (dp) return openDelProject(dp.dataset.delproj);
+    const d = e.target.closest('[data-del]'); if (d) return openDelete(Number(d.dataset.del));
+    const np = e.target.closest('[data-newproj]'); if (np) return openProject(np.dataset.newproj);
+    const t = e.target.closest('[data-tab],[data-isu],[data-semak],[data-mode],[data-tapis],[data-fail],#btnMine,#btnSite,#btnArch'); if (!t) return;
+    if (t.dataset.fail) return setFail(t.dataset.fail);
+    if (t.id === 'btnArch') { UI.showArchive = !UI.showArchive; return render(); }
+    if (t.dataset.tab) return go(t.dataset.tab);
+    if (t.dataset.isu) return openIsu(t.dataset.isu);
+    if (t.dataset.semak !== undefined) { UI.semak = UI.semak === t.dataset.semak ? '' : t.dataset.semak; return render(); }
+    if (t.dataset.mode) { UI.mode = t.dataset.mode; main.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b === t)); return renderList(); }
+    if (t.dataset.tapis) { UI.drafter = t.dataset.tapis; UI.mine = false; render(); const l = $('listBody'); if (l) l.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+    if (t.id === 'btnMine') { UI.mine = !UI.mine; t.classList.toggle('on', UI.mine); return renderList(); }
+    if (t.id === 'btnSite') { UI.siteCompare = !UI.siteCompare; return render(); }
+  });
+  main.addEventListener('input', e => {
+    if (e.target.id === 'q') { UI.q = e.target.value; renderList(); }
+  });
+  main.addEventListener('change', e => {
+    const el = e.target;
+    if (el.dataset.f) return saveField(Number(el.dataset.row), el.dataset.f, el.value);
+    if (el.id === 'fStatus') { UI.status = el.value; renderList(); }
+    else if (el.id === 'fDrafter') { UI.drafter = el.value; renderList(); }
+    else if (el.id === 'fSemak') { UI.semak = el.value; render(); }
+    else if (el.id === 'fSort') { UI.sort = el.value; renderList(); }
+    else if (el.id === 'pickProj') go(el.value);
+    else if (el.id === 'perfScope') { UI.perfAll = el.value === 'all'; render(); }
+    else if (el.id === 'incDone') { UI.incDone = el.checked; render(); }
+  });
+
+  /* ===================== MULA ===================== */
+  load();
+  setInterval(() => { if (!document.hidden && !$('modalBg').classList.contains('open') && !document.querySelector('.saving') && !(document.activeElement && document.activeElement.dataset && document.activeElement.dataset.f)) load(true); }, CFG.REFRESH_MIN * 60000);
+})();
+</script>
+</body>
+</html>

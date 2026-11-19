@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semakan Data QC | JURUKUR MAHABOB</title>
+    <!-- Tailwind CSS (CDN). Untuk production: guna assets/tailwind.css (npm run build:css) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        jm: {
+                            navy: '#0A2540', blue: '#1E40AF', royal: '#1D4ED8', light: '#EFF6FF',
+                            gold: '#FACC15', amber: '#EAB308', goldDark: '#CA8A04'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        .main-tab-btn.active { background-color: #FACC15; color: #0A2540; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+        .main-tab-btn:not(.active) { color: #BFDBFE; }
+        .main-tab-btn:not(.active):hover { background-color: rgba(255,255,255,.1); color: #fff; }
+        .main-tab-btn .cnt { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9999px; background: rgba(255,255,255,.12); }
+        .main-tab-btn.active .cnt { background: rgba(10,37,64,.12); }
+
+        .print-only { display: none; }
+        @media print {
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            main { padding-top: 0 !important; }
+            section, .kpi-card { break-inside: avoid; box-shadow: none !important; }
+            table { min-width: 0 !important; font-size: 10px; }
+            th:last-child, td:last-child { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-jm-gold selection:text-jm-navy">
+
+    <!-- Toolbar: Tab Bidang QC & Kemaskini Data -->
+    <div class="no-print max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-7 pt-6">
+        <div class="bg-jm-navy rounded-2xl shadow-md px-3 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <nav id="nav" class="flex space-x-1 sm:space-x-2 overflow-x-auto" aria-label="Bidang QC"></nav>
+            <div class="flex items-center space-x-3 justify-end shrink-0">
+                <div class="text-xs text-blue-200 bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap" title="Sumber: Google Sheets (CSV terbitan)">
+                    <span id="syncDot" class="w-2 h-2 rounded-full bg-blue-300 animate-pulse"></span>
+                    <span id="syncStatusText">Menyambung data...</span>
+                </div>
+                <button type="button" id="refreshBtn" class="bg-jm-gold hover:bg-jm-amber text-jm-navy font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-sm transition-all flex items-center gap-2 active:scale-95 disabled:opacity-60 disabled:cursor-progress whitespace-nowrap">
+                    <i class="fa-solid fa-rotate-right" id="refreshIcon"></i>
+                    <span>Kemaskini Data</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-7 py-6 sm:py-8 space-y-6">
+
+        <!-- Tajuk khas untuk cetakan -->
+        <div class="print-only">
+            <h1 class="text-lg font-extrabold text-jm-navy">Semakan Data &amp; QC — Jurukur Mahabob &amp; Co. Sdn. Bhd.</h1>
+            <p id="printSub" class="text-xs text-slate-500">Semua Bidang</p>
+        </div>
+
+        <!-- Sub-header paparan semasa -->
+        <div class="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full bg-jm-blue ring-4 ring-blue-100"></span>
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Paparan Semasa:</span>
+                    <h2 id="viewTitle" class="text-base sm:text-lg font-extrabold text-jm-navy">Semakan Data QC — Semua Bidang</h2>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+                Pantau status semakan QC &amp; kes rework setiap fail ukur terus daripada Google Sheets
+            </p>
+        </div>
+
+        <!-- Amaran data (sampel / sebahagian) -->
+        <div id="dataWarning" class="no-print hidden flex items-start gap-3 bg-amber-50 border border-amber-200 border-l-4 border-l-jm-gold rounded-2xl px-5 py-3 text-sm text-amber-900">
+            <i class="fa-solid fa-triangle-exclamation text-jm-goldDark mt-0.5"></i>
+            <p id="dataWarningMsg" class="flex-1"></p>
+            <button type="button" id="dismissWarning" class="text-amber-700 hover:text-amber-900" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- 4 KPI -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="kpi-card bg-gradient-to-br from-jm-navy to-jm-blue text-white rounded-2xl p-5 shadow-md border border-blue-900 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-jm-gold/10 group-hover:scale-110 transition-transform"></div>
+                <div class="flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-blue-200">Jumlah Fail Semakan</p>
+                        <h2 id="kpiTotal" class="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">0</h2>
+                    </div>
+                    <div class="p-3 bg-jm-gold text-jm-navy rounded-xl shadow shrink-0"><i class="fa-solid fa-clipboard-check text-lg"></i></div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/15 text-xs text-blue-100"><span id="kpiSurveyor">0</span> surveyor terlibat</div>
+            </div>
+
+            <div class="kpi-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200 border-t-4 border-t-jm-royal hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Lulus / Siap</p>
+                        <h2 id="kpiLulus" class="text-2xl sm:text-3xl font-extrabold text-jm-navy mt-2 tracking-tight">0</h2>
+                    </div>
+                    <div class="p-3 bg-blue-50 text-jm-royal rounded-xl shrink-0"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">Kadar lulus <span id="kpiLulusPct" class="ml-1 px-2 py-0.5 rounded-full bg-blue-100 text-jm-royal font-semibold">0%</span></div>
+            </div>
+
+            <div class="kpi-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200 border-t-4 border-t-jm-gold hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Dalam Proses QC</p>
+                        <h2 id="kpiProses" class="text-2xl sm:text-3xl font-extrabold text-jm-navy mt-2 tracking-tight">0</h2>
+                    </div>
+                    <div class="p-3 bg-yellow-50 text-jm-goldDark rounded-xl shrink-0"><i class="fa-solid fa-hourglass-half text-lg"></i></div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">Semakan sedang aktif</div>
+            </div>
+
+            <div class="kpi-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200 border-t-4 border-t-red-600 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Kes Rework</p>
+                        <h2 id="kpiRework" class="text-2xl sm:text-3xl font-extrabold text-jm-navy mt-2 tracking-tight">0</h2>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-600 rounded-xl shrink-0"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">Kadar semak semula <span id="kpiReworkPct" class="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">0%</span></div>
+            </div>
+        </section>
+
+        <!-- Carta -->
+        <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <h3 class="font-bold text-jm-navy text-base flex items-center gap-2 mb-1"><i class="fa-solid fa-chart-pie text-jm-blue"></i> Agihan Status Semakan</h3>
+                <p class="text-xs text-slate-500 mb-4">Pecahan fail mengikut status QC</p>
+                <div class="relative h-64"><canvas id="statusChart" aria-label="Agihan status semakan" role="img"></canvas></div>
+            </div>
+            <div class="lg:col-span-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <h3 class="font-bold text-jm-navy text-base flex items-center gap-2 mb-1"><i class="fa-solid fa-chart-bar text-jm-blue"></i> Beban Kerja &amp; Rework Mengikut Surveyor</h3>
+                <p class="text-xs text-slate-500 mb-4">Jumlah fail setiap surveyor, bahagian merah = kes rework</p>
+                <div class="max-h-80 overflow-y-auto"><div id="surveyorWrap" class="relative h-64"><canvas id="surveyorChart" aria-label="Beban kerja surveyor" role="img"></canvas></div></div>
+            </div>
+        </section>
+
+        <!-- Jadual -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 bg-slate-50/70 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-bold text-jm-navy text-lg">Rekod Fail &amp; Keputusan Semakan QC</h3>
+                        <p id="recordsCount" class="text-xs text-slate-500 mt-0.5">Menyiapkan rekod...</p>
+                    </div>
+                    <div class="no-print flex items-center gap-2">
+                        <button type="button" id="btnCSV" class="px-3.5 py-2 bg-white hover:bg-blue-50 text-jm-navy border border-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-file-arrow-down text-jm-blue"></i><span>Eksport</span>
+                        </button>
+                        <button type="button" id="btnPrint" class="px-3.5 py-2 bg-jm-navy hover:bg-jm-blue text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-print"></i><span>Cetak Laporan</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="no-print grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="relative lg:col-span-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterSearch" placeholder="Cari No Fail / Tetuan / Perkara / Surveyor..." aria-label="Carian"
+                            class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-jm-blue focus:border-jm-blue transition-all">
+                    </div>
+                    <select id="filterStatus" aria-label="Status QC" class="px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-jm-blue focus:border-jm-blue transition-all">
+                        <option value="ALL">Semua Status</option>
+                    </select>
+                    <select id="filterSurveyor" aria-label="Surveyor" class="px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-jm-blue focus:border-jm-blue transition-all">
+                        <option value="ALL">Semua Surveyor</option>
+                    </select>
+                    <select id="filterRework" aria-label="Rework" class="px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-jm-blue focus:border-jm-blue transition-all">
+                        <option value="ALL">Semua Kes</option>
+                        <option value="YES">Ada Rework (Kena Baiki)</option>
+                        <option value="NO">Tiada Rework (Lulus Sekali QC)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="w-full overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[1100px] text-xs">
+                    <thead>
+                        <tr class="bg-jm-navy text-white uppercase tracking-wider">
+                            <th class="px-3 py-3.5 font-semibold">Bil</th>
+                            <th class="px-3 py-3.5 font-semibold">Kategori</th>
+                            <th class="px-3 py-3.5 font-semibold">Tarikh Fail</th>
+                            <th class="px-3 py-3.5 font-semibold">No. Fail</th>
+                            <th class="px-3 py-3.5 font-semibold min-w-[220px]">Perkara / Projek</th>
+                            <th class="px-3 py-3.5 font-semibold min-w-[170px]">Tetuan / Pelanggan</th>
+                            <th class="px-3 py-3.5 font-semibold">Surveyor</th>
+                            <th class="px-3 py-3.5 font-semibold">Tempoh</th>
+                            <th class="px-3 py-3.5 font-semibold text-center">Status QC</th>
+                            <th class="px-3 py-3.5 font-semibold text-center">Rework</th>
+                            <th class="px-3 py-3.5 font-semibold text-center">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-7 py-6 text-xs text-slate-400 border-t border-slate-200 mt-8 flex flex-col sm:flex-row justify-between gap-2">
+        <span>&copy; <span id="footerYear"></span> <strong class="text-jm-navy">JURUKUR MAHABOB &amp; Co. Sdn. Bhd.</strong> &middot; Semakan Data &amp; QC Ukur Tanah</span>
+        <span>Pengurusan Kualiti (ISO 9001 Compliant) &middot; Sumber: Google Sheets</span>
+    </footer>
+
+    <!-- Modal perincian -->
+    <div id="detailModal" class="fixed inset-0 z-[110] bg-jm-navy/50 backdrop-blur-sm hidden items-center justify-center p-4 overflow-auto" role="dialog" aria-modal="true" aria-labelledby="mFileNo">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden m-auto">
+            <div class="bg-jm-navy text-white px-6 py-4 flex items-center gap-3 border-b-4 border-jm-gold">
+                <div class="p-2.5 rounded-xl bg-jm-gold text-jm-navy shrink-0"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="flex-1 min-w-0">
+                    <h4 id="mFileNo" class="font-extrabold text-base truncate">NO FAIL</h4>
+                    <p id="mCategory" class="text-xs text-blue-200">Maklumat QC Ukur Tanah</p>
+                </div>
+                <button type="button" id="mClose" data-close class="p-2 rounded-lg text-blue-200 hover:bg-white/10 hover:text-white" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tetuan / Pelanggan</p><p id="mTetuan" class="text-sm font-semibold text-jm-navy mt-0.5 break-words">-</p></div>
+                    <div><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Surveyor / Pegawai</p><p id="mSurveyor" class="text-sm font-semibold text-jm-navy mt-0.5">-</p></div>
+                    <div><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tarikh Fail</p><p id="mTarikh" class="text-sm font-semibold text-jm-navy mt-0.5">-</p></div>
+                    <div><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tempoh Kerja</p><p id="mTempoh" class="text-sm font-semibold text-jm-navy mt-0.5">-</p></div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Perkara / Skop Projek</p>
+                    <div id="mPerkara" class="border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">-</div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div id="mStatusBox" class="rounded-xl px-4 py-3"><p class="text-[11px] font-semibold uppercase tracking-wider opacity-70">Status Semakan QC</p><p id="mStatus" class="text-base font-extrabold mt-0.5">-</p></div>
+                    <div id="mReworkBox" class="rounded-xl px-4 py-3"><p class="text-[11px] font-semibold uppercase tracking-wider opacity-70">Status Rework</p><p id="mRework" class="text-base font-extrabold mt-0.5">-</p></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 flex justify-end">
+                <button type="button" data-close class="px-5 py-2.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-600 font-semibold text-sm hover:bg-slate-200 transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-[120] px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-all transform translate-y-2 opacity-0 hidden max-w-sm shadow-xl">
+        <i id="toastIcon" class="w-5 text-center shrink-0"></i>
+        <span id="toastMsg">Mesej notifikasi...</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 bg-slate-50/80 backdrop-blur-sm z-50 flex items-center justify-center" style="display:none;">
+        <div class="flex flex-col items-center gap-3">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-jm-blue"></i>
+            <p class="text-sm font-medium text-slate-600">Memuatkan data QC...</p>
+        </div>
+    </div>
+
+<script>
+(function () {
+    'use strict';
+    /* ================= CONFIG ================= */
+    const SHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSu5gATXzC5n6KzCNO5mk54h2EORGalqNs0XrGcxEeUXdIINtUZZfA2f7kNhAnFVPFnWFYXumEnx4FC/pub?output=csv';
+    /* Satu sumber: tab pertama sheet. Kategori (tab) diambil dari column MAKLUMAT / BIDANG / KATEGORI.
+       Kalau data dipecah ikut tab dalam Google Sheet, tambah satu baris setiap tab:
+       {name:'TITLE', url:`${SHEET_BASE_URL}&gid=XXXX`, defaultCategory:'TITLE'} */
+    const CSV_SOURCES = [
+        { name: 'QC', url: SHEET_BASE_URL, defaultCategory: 'UMUM' }
+    ];
+    const SAMPLE_DATA = [
+        { MAKLUMAT: 'ENGINEERING', TARIKH: '2026-02-03', 'NO. FAIL': 'JMB/ENG/2026/005', PERKARA: 'Ukur Aras Terperinci & Topografi Tapak Projek', TETUAN: 'Jabatan Kerja Raya (JKR)', 'NAMA SURVEYOR': 'Sr. Ahmad Zaki', 'TARIKH MULA': '2026-02-04', 'TARIKH AKHIR': '2026-02-11', STATUS: 'LULUS', REWORK: 'TIADA' },
+        { MAKLUMAT: 'TITLE', TARIKH: '2026-01-15', 'NO. FAIL': 'JMB/TTL/2026/014', PERKARA: 'Ukur Penentuan Sempadan Lot 40822 Mukim Pekan', TETUAN: 'Perbadanan Kemajuan Negeri Pahang', 'NAMA SURVEYOR': 'Sr. Khairul Anuar', 'TARIKH MULA': '2026-01-16', 'TARIKH AKHIR': '2026-01-22', STATUS: 'LULUS', REWORK: 'TIADA' },
+        { MAKLUMAT: 'TITLE', TARIKH: '2026-01-18', 'NO. FAIL': 'JMB/TTL/2026/018', PERKARA: 'Ukur Pecah Sempadan Bangunan Kondominium Vista', TETUAN: 'Tropicana Land Corp', 'NAMA SURVEYOR': 'Sr. Ahmad Zaki', 'TARIKH MULA': '2026-01-19', 'TARIKH AKHIR': '2026-02-05', STATUS: 'DALAM PROSES QC', REWORK: 'TIADA' },
+        { MAKLUMAT: 'UMAP', TARIKH: '2026-02-01', 'NO. FAIL': 'JMB/UMP/2026/001', PERKARA: 'Pemetaan Sempadan Zon UMAP & GIS Koridor Paip', TETUAN: 'Petronas Gas Berhad', 'NAMA SURVEYOR': 'Hafizuddin Bakar', 'TARIKH MULA': '2026-02-02', 'TARIKH AKHIR': '2026-02-10', STATUS: 'LULUS', REWORK: 'TIADA' },
+        { MAKLUMAT: 'TITLE', TARIKH: '2026-02-04', 'NO. FAIL': 'JMB/TTL/2026/029', PERKARA: 'Ukur Penandaan Sempadan Lot Industri Gebeng', TETUAN: 'BASF Petronas Chemicals', 'NAMA SURVEYOR': 'Sr. Khairul Anuar', 'TARIKH MULA': '2026-02-05', 'TARIKH AKHIR': '2026-02-12', STATUS: 'LULUS', REWORK: 'TIADA' },
+        { MAKLUMAT: 'UMAP', TARIKH: '2026-02-08', 'NO. FAIL': 'JMB/UMP/2026/003', PERKARA: 'Pengumpulan Data Spasial & Pemetaan GIS UMAP', TETUAN: 'Pihak Berkuasa Tempatan', 'NAMA SURVEYOR': 'Siti Nurhaliza QC', 'TARIKH MULA': '2026-02-09', 'TARIKH AKHIR': '2026-02-18', STATUS: 'DALAM PROSES QC', REWORK: 'TIADA' }
+    ];
+    const PREFERRED_TAB_ORDER = ['ENGINEERING', 'TITLE', 'UMAP'];
+    // [label, kelas chip Tailwind, warna carta, kelas kotak modal]
+    const ST_META = {
+        'LULUS': ['Lulus / Selesai', 'bg-blue-100 text-jm-royal', '#1D4ED8', 'bg-blue-50 text-jm-royal'],
+        'DALAM PROSES QC': ['Dalam Proses QC', 'bg-yellow-100 text-yellow-800', '#FACC15', 'bg-yellow-50 text-yellow-800'],
+        'REWORK REQUIRED': ['Rework Required', 'bg-red-100 text-red-700', '#DC2626', 'bg-red-50 text-red-700']
+    };
+    const NO_SURVEYOR = '(Tiada nama)';
+
+    let rawData = [], filteredData = [], dynamicTabs = [], currentTab = 'main', loading = false;
+    let statusChart = null, surveyorChart = null;
+
+    /* ================= HELPERS ================= */
+    const $ = s => document.querySelector(s);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const pad2 = n => String(n).padStart(2, '0');
+    const dmy = d => pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear();
+    const fmtDate = s => { if (s && /^\d{4}-\d{2}-\d{2}/.test(s)) { const d = new Date(s.slice(0, 10) + 'T00:00:00'); if (!isNaN(d)) return dmy(d); } return s || '-'; };
+    const tempoh = (i, sep) => (i['TARIKH MULA'] || i['TARIKH AKHIR']) ? `${fmtDate(i['TARIKH MULA'])}${sep}${fmtDate(i['TARIKH AKHIR'])}` : '-';
+    /* Satu definisi rework untuk KPI, carta, penapis, jadual & modal */
+    const hasRework = i => i.REWORK !== 'TIADA' || i.STATUS === 'REWORK REQUIRED';
+
+    let toastTimer = null, toastHideTimer = null;
+    function showToast(msg, type = 'success') {
+        const toast = $('#toast'), icon = $('#toastIcon');
+        clearTimeout(toastTimer); clearTimeout(toastHideTimer);
+        $('#toastMsg').innerText = msg;
+        toast.className = 'fixed bottom-6 right-6 z-[120] px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-all transform translate-y-0 opacity-100 max-w-sm shadow-xl bg-jm-navy text-white border-l-4';
+        if (type === 'success') { toast.classList.add('border-jm-gold'); icon.className = 'fa-solid fa-circle-check text-jm-gold shrink-0'; }
+        else if (type === 'error') { toast.classList.add('border-red-500'); icon.className = 'fa-solid fa-triangle-exclamation text-red-400 shrink-0'; }
+        else { toast.classList.add('border-blue-300'); icon.className = 'fa-solid fa-circle-info text-blue-300 shrink-0'; }
+        toastTimer = setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            toastHideTimer = setTimeout(() => toast.classList.add('hidden'), 300);
+        }, 3500);
+    }
+    function showWarning(msg) { $('#dataWarningMsg').textContent = msg; $('#dataWarning').classList.toggle('hidden', !msg); }
+    $('#dismissWarning').onclick = () => showWarning('');
+    function setSync(state, txt) {
+        const cls = { ok: 'bg-emerald-400', warn: 'bg-jm-gold', bad: 'bg-red-400', '': 'bg-blue-300 animate-pulse' }[state];
+        $('#syncDot').className = 'w-2 h-2 rounded-full ' + cls;
+        $('#syncStatusText').textContent = txt;
+    }
+
+    /* CSV parser — sokong quote, koma & baris baru dalam sel */
+    function parseCSV(txt) {
+        txt = txt.replace(/^﻿/, '');
+        const rows = []; let row = [], cur = '', q = false;
+        for (let i = 0; i < txt.length; i++) {
+            const ch = txt[i];
+            if (q) { if (ch === '"') { if (txt[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+            else if (ch === '"') q = true;
+            else if (ch === ',') { row.push(cur); cur = ''; }
+            else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+            else if (ch !== '\r') cur += ch;
+        }
+        if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+        if (!rows.length) return [];
+        const hdr = rows[0].map(h => h.trim());
+        return rows.slice(1).filter(r => r.join('').trim() !== '').map(r => { const o = {}; hdr.forEach((h, j) => { if (h) o[h] = r[j] == null ? '' : r[j]; }); return o; });
+    }
+    async function fetchCSV(url) {
+        const sep = url.includes('?') ? '&' : '?';
+        const r = await fetch(`${url}${sep}_t=${Date.now()}`, { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const txt = await r.text();
+        if (/^\s*</.test(txt)) throw new Error('Respons bukan CSV (Sheet belum diterbitkan?)');
+        return parseCSV(txt);
+    }
+
+    /* ================= FETCH ================= */
+    async function fetchData() {
+        if (loading) return; loading = true;
+        $('#loader').style.display = 'flex';
+        $('#refreshIcon').classList.add('fa-spin'); $('#refreshBtn').disabled = true;
+        setSync('', 'Memuatkan data...');
+        const res = await Promise.allSettled(CSV_SOURCES.map(s => fetchCSV(s.url).then(rows => cleanData(rows, s.defaultCategory, s.name))));
+        let combined = []; const fails = [];
+        res.forEach((r, i) => { if (r.status === 'fulfilled') combined = combined.concat(r.value); else { fails.push(CSV_SOURCES[i].name); console.error('Fetch error for tab ' + CSV_SOURCES[i].name + ':', r.reason); } });
+        const timeStr = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        if (combined.length && !fails.length) {
+            rawData = combined; showWarning('');
+            setSync('ok', `Dikemaskini: ${timeStr}`);
+            showToast(`${rawData.length} rekod dimuatkan daripada Google Sheets.`, 'success');
+        } else if (combined.length) {
+            rawData = combined;
+            showWarning(`Hanya sebahagian data berjaya dimuatkan (${rawData.length} rekod). Tab gagal: ${fails.join(', ')}.`);
+            setSync('warn', 'Sebahagian data sahaja');
+        } else {
+            rawData = cleanData(SAMPLE_DATA, 'ENGINEERING', 'SAMPLE');
+            showWarning(fails.length === CSV_SOURCES.length
+                ? 'Sambungan ke Google Sheets gagal. Angka di bawah ialah DATA SAMPEL, bukan data sebenar.'
+                : 'Google Sheet kosong atau belum diterbitkan. Angka di bawah ialah DATA SAMPEL, bukan data sebenar.');
+            setSync('bad', 'Data sampel (offline)');
+            showToast('Gagal memuat Google Sheets, papar data sampel.', 'error');
+        }
+        initDashboard();
+        $('#loader').style.display = 'none';
+        $('#refreshIcon').classList.remove('fa-spin'); $('#refreshBtn').disabled = false; loading = false;
+    }
+
+    /* ================= CLEAN ================= */
+    function cleanData(data, defaultCat, srcName) {
+        return data.map((item, idx) => {
+            const keys = Object.keys(item);
+            const getVal = possible => {
+                for (const p of possible) {
+                    const target = p.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    const k = keys.find(k => k.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') === target);
+                    if (k !== undefined && item[k] != null) return String(item[k]).trim();
+                }
+                return '';
+            };
+            const maklumat = (getVal(['MAKLUMAT', 'BIDANG', 'KATEGORI']) || defaultCat).trim().toUpperCase();
+
+            let status = getVal(['STATUS', 'STATUS QC', 'KEPUTUSAN', 'STATE']) || 'DALAM PROSES QC';
+            const sl = status.toLowerCase();
+            if (/rework|tolak|baiki|reject|gagal|tidak lulus|tak lulus/.test(sl)) status = 'REWORK REQUIRED';
+            else if (/belum|pending|menunggu/.test(sl)) status = 'DALAM PROSES QC';
+            else if (/lul|siap|pass|selesai|approved/.test(sl)) status = 'LULUS';
+            else status = 'DALAM PROSES QC';
+
+            let rework = getVal(['REWORK', 'SEMAK SEMULA', 'BAIKI']);
+            const rl = rework.toLowerCase().trim();
+            if (!rl || /^(tiada|tidak|tak|no|none|false|n|nil)\b/.test(rl) || /^[-–0]+$/.test(rl)) rework = 'TIADA';
+            else if (/\bada\b|\bya\b|yes|true|\d/.test(rl)) rework = rework.toUpperCase();
+            else rework = 'TIADA';
+
+            /* Medan kosong dibiarkan kosong (papar "-"), bukan diisi tarikh/nama rekaan */
+            return {
+                id: srcName + '-' + idx,
+                MAKLUMAT: maklumat,
+                TARIKH: getVal(['TARIKH', 'DATE', 'TARIKH FAIL']),
+                'NO. FAIL': getVal(['NOFAIL', 'NO. FAIL', 'NO_FAIL', 'FILE NO', 'NO REF']) || '-',
+                PERKARA: getVal(['PERKARA', 'PROJEK', 'TAJUK', 'DESCRIPTION', 'PROJECT']) || '-',
+                TETUAN: getVal(['TETUAN', 'PELANGGAN', 'CLIENT', 'PEMOHON']) || '-',
+                'NAMA SURVEYOR': getVal(['NAMASURVEYOR', 'NAMA SURVEYOR', 'SURVEYOR', 'PEGAWAI']) || NO_SURVEYOR,
+                'TARIKH MULA': getVal(['TARIKHMULA', 'TARIKH MULA', 'START DATE']),
+                'TARIKH AKHIR': getVal(['TARIKHAKHIR', 'TARIKH AKHIR', 'END DATE']),
+                STATUS: status,
+                REWORK: rework
+            };
+        });
+    }
+
+    /* ================= TAB ================= */
+    function initDashboard() {
+        extractDynamicTabs();
+        if (currentTab !== 'main' && !dynamicTabs.includes(currentTab)) currentTab = 'main';
+        renderNav(); populateFilterDropdowns(); updateTitle(); applyFilters();
+    }
+    function extractDynamicTabs() {
+        const cats = new Set(rawData.map(i => i.MAKLUMAT).filter(Boolean));
+        dynamicTabs = [...cats].sort((a, b) => {
+            const ia = PREFERRED_TAB_ORDER.indexOf(a), ib = PREFERRED_TAB_ORDER.indexOf(b);
+            if (ia !== -1 && ib !== -1) return ia - ib; if (ia !== -1) return -1; if (ib !== -1) return 1; return a.localeCompare(b);
+        });
+    }
+    function tabIcon(n) {
+        if (n.includes('TITLE') || n.includes('HAKMILIK')) return 'fa-file-contract';
+        if (n.includes('UMAP') || n.includes('GIS')) return 'fa-map-location-dot';
+        if (n.includes('ENGINEERING') || n.includes('KEJURUTERAAN')) return 'fa-ruler-combined';
+        return 'fa-folder-open';
+    }
+    function renderNav() {
+        const btn = (id, label, icon, n) => `<button type="button" data-tab="${esc(id)}" aria-pressed="${currentTab === id}" class="main-tab-btn ${currentTab === id ? 'active' : ''} px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap"><i class="fa-solid ${icon}"></i><span>${esc(label)}</span><span class="cnt">${n}</span></button>`;
+        $('#nav').innerHTML = btn('main', 'Semua Bidang', 'fa-gauge-high', rawData.length)
+            + dynamicTabs.map(t => btn(t, t, tabIcon(t), rawData.filter(i => i.MAKLUMAT === t).length)).join('');
+    }
+    $('#nav').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) switchTab(b.dataset.tab); });
+    function switchTab(t) {
+        currentTab = t;
+        document.querySelectorAll('#nav [data-tab]').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on); });
+        updateTitle(); applyFilters();
+    }
+    function updateTitle() {
+        const t = currentTab === 'main' ? 'Semua Bidang' : `Bidang ${currentTab}`;
+        $('#viewTitle').textContent = `Semakan Data QC — ${t}`;
+        document.title = `QC ${t} | JURUKUR MAHABOB`;
+        $('#printSub').textContent = `${t} · Dicetak ${dmy(new Date())}`;
+    }
+
+    /* ================= PENAPIS ================= */
+    function populateFilterDropdowns() {
+        const fill = (sel, vals, allLabel, labelOf) => {
+            const el = $(sel), cur = el.value;
+            el.innerHTML = `<option value="ALL">${allLabel}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(labelOf ? labelOf(v) : v)}</option>`).join('');
+            el.value = vals.includes(cur) ? cur : 'ALL';
+        };
+        fill('#filterStatus', Object.keys(ST_META).filter(k => rawData.some(i => i.STATUS === k)), 'Semua Status', k => ST_META[k][0]);
+        fill('#filterSurveyor', [...new Set(rawData.map(i => i['NAMA SURVEYOR']))].sort((a, b) => a.localeCompare(b)), 'Semua Surveyor');
+    }
+    function applyFilters() {
+        const q = $('#filterSearch').value.toLowerCase().trim();
+        const fs = $('#filterStatus').value, fv = $('#filterSurveyor').value, fr = $('#filterRework').value;
+        filteredData = rawData.filter(i => {
+            if (currentTab !== 'main' && i.MAKLUMAT !== currentTab) return false;
+            if (q && ![i['NO. FAIL'], i.PERKARA, i.TETUAN, i['NAMA SURVEYOR']].some(v => String(v).toLowerCase().includes(q))) return false;
+            if (fs !== 'ALL' && i.STATUS !== fs) return false;
+            if (fv !== 'ALL' && i['NAMA SURVEYOR'] !== fv) return false;
+            if (fr === 'YES' && !hasRework(i)) return false;
+            if (fr === 'NO' && hasRework(i)) return false;
+            return true;
+        });
+        updateMetrics(); renderTable(); renderCharts();
+    }
+    let searchT;
+    $('#filterSearch').addEventListener('input', () => { clearTimeout(searchT); searchT = setTimeout(applyFilters, 150); });
+    ['#filterStatus', '#filterSurveyor', '#filterRework'].forEach(s => $(s).addEventListener('change', applyFilters));
+    function resetFilters() { $('#filterSearch').value = ''; ['#filterStatus', '#filterSurveyor', '#filterRework'].forEach(s => $(s).value = 'ALL'); applyFilters(); }
+
+    /* ================= KPI ================= */
+    function updateMetrics() {
+        const total = filteredData.length;
+        const passed = filteredData.filter(i => i.STATUS === 'LULUS').length;
+        const prog = filteredData.filter(i => i.STATUS === 'DALAM PROSES QC').length;
+        const rework = filteredData.filter(hasRework).length;
+        const sv = new Set(filteredData.map(i => i['NAMA SURVEYOR']).filter(n => n !== NO_SURVEYOR)).size;
+        const pr = total ? Math.round(passed / total * 100) : 0, rr = total ? Math.round(rework / total * 100) : 0;
+        $('#kpiTotal').textContent = total;
+        $('#kpiSurveyor').textContent = sv;
+        $('#kpiLulus').textContent = passed;
+        $('#kpiLulusPct').textContent = pr + '%';
+        $('#kpiProses').textContent = prog;
+        $('#kpiRework').textContent = rework;
+        $('#kpiReworkPct').textContent = rr + '%';
+        $('#kpiReworkPct').className = 'ml-1 px-2 py-0.5 rounded-full font-semibold ' + (rr ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700');
+    }
+
+    /* ================= JADUAL ================= */
+    function renderTable() {
+        const tb = $('#tableBody');
+        $('#recordsCount').textContent = `Papar ${filteredData.length} daripada ${rawData.length} rekod`;
+        if (!filteredData.length) {
+            tb.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-slate-400"><i class="fa-solid fa-folder-open text-2xl text-slate-300 mb-2 block"></i>Tiada rekod dijumpai. Cuba set semula penapis atau tukar bidang.<br><button type="button" data-reset class="mt-3 px-4 py-2 rounded-xl bg-jm-gold hover:bg-jm-amber text-jm-navy font-semibold text-xs">Reset Penapis</button></td></tr>`;
+            return;
+        }
+        tb.innerHTML = filteredData.map((i, n) => {
+            const m = ST_META[i.STATUS] || ST_META['DALAM PROSES QC'];
+            const rwTitle = i.REWORK !== 'TIADA' ? i.REWORK : 'Status QC: Rework Required';
+            const rw = hasRework(i)
+                ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1" title="${esc(rwTitle)}"><i class="fa-solid fa-triangle-exclamation"></i>Rework</span>`
+                : '<span class="text-slate-400">Tiada</span>';
+            return `<tr class="hover:bg-blue-50/50 transition">
+                <td class="px-3 py-3 text-slate-400">${n + 1}</td>
+                <td class="px-3 py-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-jm-royal inline-block">${esc(i.MAKLUMAT)}</span></td>
+                <td class="px-3 py-3 text-slate-600 whitespace-nowrap">${esc(fmtDate(i.TARIKH))}</td>
+                <td class="px-3 py-3 font-bold text-jm-navy whitespace-nowrap">${esc(i['NO. FAIL'])}</td>
+                <td class="px-3 py-3 text-slate-800 font-medium">${esc(i.PERKARA)}</td>
+                <td class="px-3 py-3 text-slate-600">${esc(i.TETUAN)}</td>
+                <td class="px-3 py-3 text-slate-800 font-semibold whitespace-nowrap">${esc(i['NAMA SURVEYOR'])}</td>
+                <td class="px-3 py-3 text-slate-500 whitespace-nowrap">${esc(tempoh(i, ' – '))}</td>
+                <td class="px-3 py-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold inline-block ${m[1]}">${esc(i.STATUS)}</span></td>
+                <td class="px-3 py-3 text-center whitespace-nowrap">${rw}</td>
+                <td class="px-3 py-3 text-center"><button type="button" data-view="${esc(i.id)}" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-jm-blue/10 text-jm-blue hover:bg-jm-blue/20 font-semibold text-[11px] transition" aria-label="Papar perincian ${esc(i['NO. FAIL'])}"><i class="fa-solid fa-eye"></i> Lihat</button></td>
+            </tr>`;
+        }).join('');
+    }
+    $('#tableBody').addEventListener('click', e => {
+        const v = e.target.closest('[data-view]'); if (v) return openModal(v.dataset.view);
+        if (e.target.closest('[data-reset]')) resetFilters();
+    });
+
+    /* ================= CARTA (Chart.js) ================= */
+    function renderCharts() {
+        if (typeof Chart === 'undefined') return;
+        Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+        Chart.defaults.color = '#64748B';
+
+        const keys = Object.keys(ST_META);
+        const counts = keys.map(k => filteredData.filter(i => i.STATUS === k).length);
+        const total = counts.reduce((a, b) => a + b, 0);
+        if (statusChart) statusChart.destroy();
+        statusChart = new Chart($('#statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: keys.map(k => ST_META[k][0]),
+                datasets: [{ data: total ? counts : [1], backgroundColor: total ? keys.map(k => ST_META[k][2]) : ['#E2E8F0'], borderColor: '#FFFFFF', borderWidth: 3, hoverOffset: 6 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '62%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, generateLabels: ch => keys.map((k, i) => ({ text: `${ST_META[k][0]} (${counts[i]})`, fillStyle: ST_META[k][2], strokeStyle: ST_META[k][2], index: i })) } },
+                    tooltip: { enabled: total > 0, callbacks: { label: c => ` ${c.label}: ${c.raw} fail (${Math.round(c.raw / total * 100)}%)` } }
+                }
+            }
+        });
+
+        const map = {};
+        filteredData.forEach(i => { const k = i['NAMA SURVEYOR']; map[k] = map[k] || { t: 0, r: 0 }; map[k].t++; if (hasRework(i)) map[k].r++; });
+        const rows = Object.entries(map).sort((x, y) => y[1].t - x[1].t || y[1].r - x[1].r);
+        $('#surveyorWrap').style.height = Math.max(256, rows.length * 36 + 40) + 'px';
+        if (surveyorChart) surveyorChart.destroy();
+        surveyorChart = new Chart($('#surveyorChart'), {
+            type: 'bar',
+            data: {
+                labels: rows.map(r => r[0]),
+                datasets: [
+                    { label: 'Tanpa rework', data: rows.map(r => r[1].t - r[1].r), backgroundColor: '#1D4ED8', borderRadius: 6, barPercentage: 0.6 },
+                    { label: 'Kes rework', data: rows.map(r => r[1].r), backgroundColor: '#DC2626', borderRadius: 6, barPercentage: 0.6 }
+                ]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12 } },
+                    tooltip: { callbacks: { footer: items => `Jumlah: ${rows[items[0].dataIndex][1].t} fail` } }
+                },
+                scales: {
+                    x: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#F1F5F9' } },
+                    y: { stacked: true, grid: { display: false }, ticks: { color: '#334155' } }
+                }
+            }
+        });
+    }
+
+    /* ================= MODAL ================= */
+    let lastFocus = null;
+    function openModal(id) {
+        const r = rawData.find(i => i.id === id); if (!r) return;
+        lastFocus = document.activeElement;
+        const m = ST_META[r.STATUS] || ST_META['DALAM PROSES QC'];
+        $('#mFileNo').textContent = r['NO. FAIL'];
+        $('#mCategory').textContent = `Bidang: Ukur ${r.MAKLUMAT} (Kategori QC)`;
+        $('#mTetuan').textContent = r.TETUAN;
+        $('#mSurveyor').textContent = r['NAMA SURVEYOR'];
+        $('#mTarikh').textContent = fmtDate(r.TARIKH);
+        $('#mTempoh').textContent = tempoh(r, ' hingga ');
+        $('#mPerkara').textContent = r.PERKARA;
+        $('#mStatus').textContent = r.STATUS;
+        $('#mStatusBox').className = 'rounded-xl px-4 py-3 ' + m[3];
+        $('#mRework').textContent = r.REWORK !== 'TIADA' ? r.REWORK : (hasRework(r) ? 'ADA (ikut status QC)' : 'TIADA');
+        $('#mReworkBox').className = 'rounded-xl px-4 py-3 ' + (hasRework(r) ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-600');
+        const modal = $('#detailModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+        $('#mClose').focus();
+    }
+    function closeModal() {
+        const modal = $('#detailModal'); modal.classList.add('hidden'); modal.classList.remove('flex');
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    $('#detailModal').addEventListener('click', e => { if (e.target.id === 'detailModal' || e.target.closest('[data-close]')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#detailModal').classList.contains('hidden')) closeModal(); });
+
+    /* ================= EKSPORT / CETAK ================= */
+    function exportCSV() {
+        if (!filteredData.length) { showToast('Tiada data untuk dieksport berdasarkan penapis semasa.', 'error'); return; }
+        const head = ['Kategori', 'Tarikh', 'No Fail', 'Perkara', 'Tetuan', 'Surveyor', 'Tarikh Mula', 'Tarikh Akhir', 'Status QC', 'Rework'];
+        const q = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+        const lines = [head.map(q).join(',')].concat(filteredData.map(i => [i.MAKLUMAT, fmtDate(i.TARIKH), i['NO. FAIL'], i.PERKARA, i.TETUAN, i['NAMA SURVEYOR'], fmtDate(i['TARIKH MULA']), fmtDate(i['TARIKH AKHIR']), i.STATUS, hasRework(i) ? (i.REWORK !== 'TIADA' ? i.REWORK : 'ADA') : 'TIADA'].map(q).join(',')));
+        const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        const d = new Date(); a.download = `QC_Laporan_Mahabob_${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}.csv`;
+        document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        showToast(`${filteredData.length} rekod dieksport.`, 'success');
+    }
+    $('#btnCSV').onclick = exportCSV;
+    $('#btnPrint').onclick = () => window.print();
+    $('#refreshBtn').onclick = fetchData;
+
+    $('#footerYear').textContent = new Date().getFullYear();
+    fetchData();
+})();
+</script>
+</body>
+</html>
