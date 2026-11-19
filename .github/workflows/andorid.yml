@@ -29,12 +29,20 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
-
-      - name: Pasang Android NDK
+      # Runner ubuntu-latest dah ada Android SDK + NDK. Guna terus, tak perlu setup-android.
+      - name: Sedia Android SDK & NDK
         run: |
-          sdkmanager --install "ndk;${NDK_VERSION}" "platforms;android-36" "build-tools;35.0.0"
-          echo "NDK_HOME=$ANDROID_HOME/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "build-tools;35.0.0"
+          if [ -n "${ANDROID_NDK_LATEST_HOME:-}" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
+            echo "Guna NDK sedia ada: $ANDROID_NDK_LATEST_HOME"
+            echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          else
+            "$SDKM" --install "ndk;${NDK_VERSION}"
+            echo "NDK_HOME=$ANDROID_HOME/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+          fi
 
       - name: Rust + target Android
         uses: dtolnay/rust-toolchain@stable
